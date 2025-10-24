@@ -1,0 +1,41 @@
+services:
+  backend:
+    build: ./Backend
+    container_name: fastapi-backend-RS
+    ports:
+      - "9000:8000"
+    volumes:
+      - ./Backend:/app
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: mysql+pymysql://root:123@db:3306/lcode_db
+    restart: always
+
+  db:
+    image: mysql:latest
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123
+      MYSQL_DATABASE: RutasDB
+    volumes:
+      - mysql_data:/var/lib/mysql
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      - PMA_ARBITRARY=1
+
+  # frontend:
+  #   image: jhosuepstr/frontend-rs:latest
+  #   container_name: flutter-frontend-RS
+  #   ports:
+  #     - "3000:80"
+  #   restart: always
+
+volumes:
+  mysql_data:

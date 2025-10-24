@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
+import 'package:rutasfrontend/presentation/screens/home_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final String? token;
@@ -16,13 +16,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _currentPage = 0;
 
   final List<Widget> _pages = const [
-    Center(child: Text('Bienvenido 👋', style: TextStyle(fontSize: 24))),
-    Center(
-      child: Text('Explora rutas de buses 🚌', style: TextStyle(fontSize: 24)),
-    ),
-    Center(
-      child: Text('Encuentra tu destino 📍', style: TextStyle(fontSize: 24)),
-    ),
+    Center(child: Text('Página 1', style: TextStyle(fontSize: 24))),
+    Center(child: Text('Página 2', style: TextStyle(fontSize: 24))),
+    Center(child: Text('Página 3', style: TextStyle(fontSize: 24))),
   ];
 
   void _nextPage() {
@@ -32,7 +28,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      // ✅ Aquí navega correctamente al HomeScreen
+      // 👇 Navegamos correctamente al HomeScreen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),

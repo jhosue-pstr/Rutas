@@ -153,6 +153,20 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 20),
+
+                      // 👇 Nuevo botón de invitado
+                      TextButton(
+                        onPressed: _accederComoInvitado,
+                        child: Text(
+                          'Acceder como invitado',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.deepPurple[700],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -207,7 +221,6 @@ class _LoginScreenState extends State<LoginScreen> {
       final token = response['access_token'];
       final user = response['user'];
 
-      // Guardar token y datos del usuario localmente
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('access_token', token);
       await prefs.setString('user', jsonEncode(user));
@@ -230,6 +243,26 @@ class _LoginScreenState extends State<LoginScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => OnboardingScreen(token: token, user: user),
+      ),
+    );
+  }
+
+  void _accederComoInvitado() async {
+    // 👤 Datos temporales simulados para el invitado
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('access_token', 'guest_token');
+    await prefs.setString(
+      'user',
+      jsonEncode({'nombre': 'Invitado', 'rol': 'visitante'}),
+    );
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OnboardingScreen(
+          token: 'guest_token',
+          user: {'nombre': 'Invitado', 'rol': 'visitante'},
+        ),
       ),
     );
   }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'home_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final String? token;
   final Map<String, dynamic>? user;
 
-  OnboardingScreen({Key? key, this.token, this.user}) : super(key: key);
+  const OnboardingScreen({Key? key, this.token, this.user}) : super(key: key);
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -15,9 +16,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _currentPage = 0;
 
   final List<Widget> _pages = const [
-    Center(child: Text('Página 1', style: TextStyle(fontSize: 24))),
-    Center(child: Text('Página 2', style: TextStyle(fontSize: 24))),
-    Center(child: Text('Página 3', style: TextStyle(fontSize: 24))),
+    Center(child: Text('Bienvenido 👋', style: TextStyle(fontSize: 24))),
+    Center(
+      child: Text('Explora rutas de buses 🚌', style: TextStyle(fontSize: 24)),
+    ),
+    Center(
+      child: Text('Encuentra tu destino 📍', style: TextStyle(fontSize: 24)),
+    ),
   ];
 
   void _nextPage() {
@@ -27,8 +32,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      // Aquí podrías navegar a tu pantalla principal
-      Navigator.pushReplacementNamed(context, '/home');
+      // ✅ Aquí navega correctamente al HomeScreen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
     }
   }
 

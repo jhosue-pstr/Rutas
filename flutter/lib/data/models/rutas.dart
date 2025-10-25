@@ -7,6 +7,7 @@ class Ruta {
   final String? descripcion;
   final DateTime fechaRegistro;
   final List<PuntoRuta> puntos;
+  final List<dynamic>? buses;
 
   const Ruta({
     required this.idRuta,
@@ -15,6 +16,7 @@ class Ruta {
     this.descripcion,
     required this.fechaRegistro,
     this.puntos = const [],
+    this.buses,
   });
 
   factory Ruta.fromJson(Map<String, dynamic> json) {
@@ -26,9 +28,10 @@ class Ruta {
       fechaRegistro: DateTime.parse(json['FechaRegistro']),
       puntos:
           (json['Puntos'] as List<dynamic>?)
-              ?.map((p) => PuntoRuta.fromJson(p))
+              ?.map((p) => PuntoRuta.fromJson(p as Map<String, dynamic>))
               .toList() ??
           [],
+      buses: json['Buses'] as List<dynamic>?,
     );
   }
 
@@ -39,5 +42,6 @@ class Ruta {
     'Descripcion': descripcion,
     'FechaRegistro': fechaRegistro.toIso8601String(),
     'Puntos': puntos.map((p) => p.toJson()).toList(),
+    'Buses': buses,
   };
 }

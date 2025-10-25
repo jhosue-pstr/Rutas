@@ -4,8 +4,7 @@ import '../../core/constants/api.dart';
 import '../models/punto_ruta.dart';
 
 class PuntoRutaService {
-  final String endpoint =
-      'puntos_rutas'; // Cambiado a puntos_rutas (plural correcto)
+  final String endpoint = 'puntosruta';
 
   Future<List<PuntoRuta>> getPuntosRuta() async {
     try {

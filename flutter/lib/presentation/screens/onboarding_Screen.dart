@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rutasfrontend/presentation/screens/DibujarRutasScreen.dart';
 import 'package:rutasfrontend/presentation/screens/home_screen.dart';
+import 'package:rutasfrontend/presentation/screens/ver_rutas_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final String? token;
@@ -29,10 +30,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      // 👇 Navegamos correctamente al HomeScreen
+      // 👇 Navegamos correctamente al HomeScreenR
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const DibujarRutasScreen()),
+        MaterialPageRoute(builder: (context) => const VerRutasScreen()),
       );
     }
   }

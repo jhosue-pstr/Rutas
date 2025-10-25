@@ -9,7 +9,7 @@ class PuntoRutaBase(SQLModel):
 
 class PuntoRuta(PuntoRutaBase, table=True):
     id_punto: Optional[int] = Field(default=None, primary_key=True)
-    ruta_id: Optional[int] = Field(default=None, foreign_key="ruta.id_ruta")
+    ruta_id: Optional[int] = Field(default=None, foreign_key="ruta.IdRuta")
     ruta: Optional["Ruta"] = Relationship(back_populates="puntos")
 
 class PuntoRutaCreate(PuntoRutaBase):

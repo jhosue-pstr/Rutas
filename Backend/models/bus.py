@@ -13,7 +13,7 @@ class BusBase(SQLModel):
 class Bus(BusBase, table=True):
     id_bus: Optional[int] = Field(default=None, primary_key=True)
     chofer_id: Optional[int] = Field(default=None, foreign_key="chofer.id_chofer")
-    ruta_id: Optional[int] = Field(default=None, foreign_key="ruta.id_ruta")
+    ruta_id: Optional[int] = Field(default=None, foreign_key="ruta.IdRuta")
 
     chofer: Optional["Chofer"] = Relationship(back_populates="buses")
     ruta: Optional["Ruta"] = Relationship(back_populates="buses")

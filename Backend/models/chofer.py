@@ -25,3 +25,12 @@ class ChoferPublic(ChoferBase):
     IdChofer: int
     FechaIngreso: datetime.date
     Estado: bool
+
+
+class ChoferUpdate(SQLModel):
+    nombre: Optional[str] = None
+    apellido: Optional[str] = None
+    dni: Optional[str] = None
+    telefono: Optional[str] = None
+    qr_pago: Optional[str] = None
+    foto: Optional[str] = None

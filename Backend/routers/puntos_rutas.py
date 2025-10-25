@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
 from config.database import get_session
-from models.puntoruta import PuntoRutaCreate, PuntoRutaPublic, PuntoRutaUpdate
+from models.punto_ruta import PuntoRutaCreate, PuntoRutaPublic, PuntoRutaUpdate
 from controller.PuntoRuta import (
     LeerPuntosRuta, CrearPuntoRuta, LeerPuntoRutaPorId, ActualizarPuntoRuta, EliminarPuntoRuta
 )

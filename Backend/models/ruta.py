@@ -28,3 +28,8 @@ class RutaCreate(RutaBase):
 class RutaPublic(RutaBase):
     IdRuta: int
     FechaRegistro: datetime.date
+
+class RutaUpdate(SQLModel):
+    nombre: Optional[str] = None
+    color: Optional[str] = None
+    descripcion: Optional[str] = None    

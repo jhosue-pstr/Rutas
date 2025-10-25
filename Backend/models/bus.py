@@ -25,3 +25,11 @@ class BusPublic(BusBase):
     IdBus: int
     ChoferId: Optional[int]
     RutaId: Optional[int]
+
+
+class BusUpdate(SQLModel):
+    placa: Optional[str] = None
+    capacidad: Optional[int] = None
+    estado: Optional[bool] = None
+    ruta_id: Optional[int] = None
+    chofer_id: Optional[int] = None

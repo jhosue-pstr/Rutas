@@ -20,3 +20,10 @@ class PuntoRutaCreate(PuntoRutaBase):
 class PuntoRutaPublic(PuntoRutaBase):
     IdPunto: int
     RutaId: int
+
+
+class PuntoRutaUpdate(SQLModel):
+    latitud: Optional[float] = None
+    longitud: Optional[float] = None
+    orden: Optional[int] = None
+    ruta_id: Optional[int] = None

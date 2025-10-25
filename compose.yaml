@@ -9,7 +9,7 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: mysql+pymysql://root:123@db:3306/lcode_db
+      DATABASE_URL: mysql+pymysql://root:123@db:3306/RutasDB
     restart: always
 
   db:

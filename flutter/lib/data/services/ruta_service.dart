@@ -43,7 +43,7 @@ class RutaService {
   Future<Ruta> createRuta(Ruta ruta) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/$endpoint'),
+        Uri.parse('$baseUrl/api/$endpoint/'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(ruta.toJson()),
       );

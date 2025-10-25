@@ -12,7 +12,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final String apiKey = "";
+  final String apiKey = "AIzaSyBu-nZsShTYeztqo_so258P725jgZB-B5M";
 
   GoogleMapController? _mapController;
   LatLng? _origen;

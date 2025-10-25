@@ -40,7 +40,7 @@ class PuntoRutaService {
   Future<PuntoRuta> createPuntoRuta(PuntoRuta punto) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/$endpoint/'),
+        Uri.parse('$baseUrl/api/$endpoint/'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(punto.toJson()),
       );

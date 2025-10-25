@@ -1,6 +1,8 @@
+# chofer.py
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 import datetime
+from sqlalchemy import Column, DateTime
 
 class ChoferBase(SQLModel):
     Nombre: str
@@ -13,24 +15,29 @@ class ChoferBase(SQLModel):
 
 class Chofer(ChoferBase, table=True):
     IdChofer: Optional[int] = Field(default=None, primary_key=True)
-    FechaIngreso: datetime.date = Field(default_factory=datetime.datetime.utcnow)
+    FechaIngreso: datetime.datetime = Field(
+        default_factory=datetime.datetime.utcnow,
+        sa_column=Column(DateTime(timezone=True))
+    )
     Estado: bool = True
 
-    Buses: List["Bus"] = Relationship(back_populates="Chofer")
+    buses: List["Bus"] = Relationship(back_populates="chofer")
 
 class ChoferCreate(ChoferBase):
     pass
 
 class ChoferPublic(ChoferBase):
     IdChofer: int
-    FechaIngreso: datetime.date
+    FechaIngreso: datetime.datetime
     Estado: bool
 
-
 class ChoferUpdate(SQLModel):
-    nombre: Optional[str] = None
-    apellido: Optional[str] = None
-    dni: Optional[str] = None
-    telefono: Optional[str] = None
-    qr_pago: Optional[str] = None
-    foto: Optional[str] = None
+    Nombre: Optional[str] = None
+    Apellido: Optional[str] = None
+    DNI: Optional[str] = None
+    Telefono: Optional[str] = None
+    QRPagoURL: Optional[str] = None
+    FotoURL: Optional[str] = None
+    LicenciaConducir: Optional[str] = None
+
+Chofer.update_forward_refs()

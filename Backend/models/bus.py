@@ -1,7 +1,8 @@
+# bus.py
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional
-from .chofer import Chofer
-from .ruta import Ruta
+from sqlalchemy import Column, DateTime
+import datetime
 
 class BusBase(SQLModel):
     Placa: str
@@ -14,8 +15,8 @@ class Bus(BusBase, table=True):
     ChoferId: Optional[int] = Field(default=None, foreign_key="chofer.IdChofer")
     RutaId: Optional[int] = Field(default=None, foreign_key="ruta.IdRuta")
 
-    Chofer: Optional[Chofer] = Relationship(back_populates="Buses")
-    Ruta: Optional[Ruta] = Relationship(back_populates="Buses")
+    chofer: Optional["Chofer"] = Relationship(back_populates="buses")
+    ruta: Optional["Ruta"] = Relationship(back_populates="Buses")
 
 class BusCreate(BusBase):
     ChoferId: Optional[int] = None
@@ -26,10 +27,12 @@ class BusPublic(BusBase):
     ChoferId: Optional[int]
     RutaId: Optional[int]
 
-
 class BusUpdate(SQLModel):
-    placa: Optional[str] = None
-    capacidad: Optional[int] = None
-    estado: Optional[bool] = None
-    ruta_id: Optional[int] = None
-    chofer_id: Optional[int] = None
+    Placa: Optional[str] = None
+    Capacidad: Optional[int] = None
+    RutaId: Optional[int] = None
+    ChoferId: Optional[int] = None
+    Modelo: Optional[str] = None
+    Marca: Optional[str] = None
+
+Bus.update_forward_refs()

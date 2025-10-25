@@ -1,6 +1,8 @@
+# punto_ruta.py
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional
-from .ruta import Ruta
+from sqlalchemy import Column, DateTime
+import datetime
 
 class PuntoRutaBase(SQLModel):
     Latitud: float
@@ -10,9 +12,7 @@ class PuntoRutaBase(SQLModel):
 class PuntoRuta(PuntoRutaBase, table=True):
     IdPunto: Optional[int] = Field(default=None, primary_key=True)
     RutaId: Optional[int] = Field(default=None, foreign_key="ruta.IdRuta")
-
-    # Relación inversa
-    Ruta: Optional[Ruta] = Relationship(back_populates="Puntos")
+    Ruta: Optional["Ruta"] = Relationship(back_populates="Puntos")
 
 class PuntoRutaCreate(PuntoRutaBase):
     RutaId: int
@@ -21,9 +21,10 @@ class PuntoRutaPublic(PuntoRutaBase):
     IdPunto: int
     RutaId: int
 
-
 class PuntoRutaUpdate(SQLModel):
-    latitud: Optional[float] = None
-    longitud: Optional[float] = None
-    orden: Optional[int] = None
-    ruta_id: Optional[int] = None
+    Latitud: Optional[float] = None
+    Longitud: Optional[float] = None
+    Orden: Optional[int] = None
+    RutaId: Optional[int] = None
+
+PuntoRuta.update_forward_refs()

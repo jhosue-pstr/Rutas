@@ -15,7 +15,6 @@ def Obtener_Rutas(
     session: Session = Depends(get_session),
     offset: int = 0,
     limit: int = 100,
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return LeerRutas(session, offset=offset, limit=limit)
 
@@ -23,7 +22,6 @@ def Obtener_Rutas(
 def Agregar_Ruta(
     ruta: RutaCreate,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return CrearRuta(ruta, session)
 
@@ -31,7 +29,6 @@ def Agregar_Ruta(
 def Obtener_Ruta_Por_Id(
     id: int,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return LeerRutaPorId(id, session)
 

@@ -8,9 +8,9 @@ SessionDep = Annotated[Session, Depends(get_session)]
 
 def CrearRuta(ruta: RutaCreate, session: Session) -> RutaPublic:
     nueva_ruta = Ruta(
-        nombre=ruta.nombre,
-        color=ruta.color,
-        descripcion=ruta.descripcion
+        nombre=ruta.Nombre,
+        color=ruta.Color,
+        descripcion=ruta.Descripcion
     )
     session.add(nueva_ruta)
     session.commit()

@@ -3,7 +3,7 @@ from fastapi import Depends, HTTPException, Query
 from sqlmodel import Session, select
 from config.database import get_session
 from models.usuario import Usuario, UsuarioCreate, UsuarioPublic, UsuarioUpdate
-from controlers.auth import get_password_hash, get_user_by_email
+from controller.auth import get_password_hash, get_user_by_email
 import datetime
 
 SessionDep = Annotated[Session, Depends(get_session)]

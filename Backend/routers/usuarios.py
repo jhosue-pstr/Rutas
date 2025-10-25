@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session
 from config.database import get_session
 from models.usuario import UsuarioCreate, UsuarioPublic, UsuarioUpdate
-from controlers.Usuario import (
+from controller.Usuario import (
     LeerUsuarios, CrearUsuario, LeerUsuarioPorId, ActualizarUsuario, EliminarUsuario
 )
 from routers.auth import get_current_active_user  

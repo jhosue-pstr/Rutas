@@ -5,8 +5,8 @@ from datetime import timedelta
 
 from config.database import get_session
 from models.usuario import Token, UserLogin, UsuarioPublic, UsuarioCreate
-from controlers.auth import authenticate_user, create_access_token, get_current_user
-from controlers.Usuario import CrearUsuario
+from controller.auth import authenticate_user, create_access_token, get_current_user
+from controller.Usuario import CrearUsuario
 from models.usuario import Usuario
 
 router = APIRouter(prefix="/auth", tags=["authentication"])

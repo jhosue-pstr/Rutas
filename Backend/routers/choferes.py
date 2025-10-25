@@ -15,7 +15,6 @@ def Obtener_Choferes(
     session: Session = Depends(get_session),
     offset: int = 0,
     limit: int = 100,
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return LeerChoferes(session, offset=offset, limit=limit)
 
@@ -23,7 +22,6 @@ def Obtener_Choferes(
 def Agregar_Chofer(
     chofer: ChoferCreate,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return CrearChofer(chofer, session)
 
@@ -31,7 +29,6 @@ def Agregar_Chofer(
 def Obtener_Chofer_Por_Id(
     id: int,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return LeerChoferPorId(id, session)
 
@@ -40,7 +37,6 @@ def Actualizar_Chofer(
     id: int,
     datos: ChoferUpdate,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return ActualizarChofer(id, datos, session)
 
@@ -48,6 +44,5 @@ def Actualizar_Chofer(
 def Eliminar_Chofer(
     id: int,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return EliminarChofer(id, session)

@@ -4,11 +4,14 @@ import '../../core/constants/api.dart';
 import '../models/punto_ruta.dart';
 
 class PuntoRutaService {
-  final String endpoint = 'puntosruta';
+  final String endpoint =
+      'puntos_rutas'; // Cambiado a puntos_rutas (plural correcto)
 
   Future<List<PuntoRuta>> getPuntosRuta() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/$endpoint/'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/$endpoint/'), // Agregado /api/
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -25,7 +28,9 @@ class PuntoRutaService {
 
   Future<PuntoRuta> getPuntoRutaById(int id) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/$endpoint/$id'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/$endpoint/$id'), // Agregado /api/
+      );
 
       if (response.statusCode == 200) {
         return PuntoRuta.fromJson(json.decode(response.body));
@@ -40,7 +45,7 @@ class PuntoRutaService {
   Future<PuntoRuta> createPuntoRuta(PuntoRuta punto) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/api/$endpoint/'),
+        Uri.parse('$baseUrl/api/$endpoint/'), // Corregido URL
         headers: {'Content-Type': 'application/json'},
         body: json.encode(punto.toJson()),
       );
@@ -60,7 +65,7 @@ class PuntoRutaService {
   Future<PuntoRuta> updatePuntoRuta(int id, Map<String, dynamic> datos) async {
     try {
       final response = await http.patch(
-        Uri.parse('$baseUrl/$endpoint/$id'),
+        Uri.parse('$baseUrl/api/$endpoint/$id'), // Agregado /api/
         headers: {'Content-Type': 'application/json'},
         body: json.encode(datos),
       );
@@ -79,7 +84,9 @@ class PuntoRutaService {
 
   Future<void> deletePuntoRuta(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/$endpoint/$id'));
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/$endpoint/$id'), // Agregado /api/
+      );
 
       if (response.statusCode != 204 && response.statusCode != 200) {
         throw Exception(

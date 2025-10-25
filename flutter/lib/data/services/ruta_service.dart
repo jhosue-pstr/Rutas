@@ -6,10 +6,11 @@ import '../models/rutas.dart';
 class RutaService {
   final String endpoint = 'rutas';
 
-  /// 🔹 Obtener todas las rutas
   Future<List<Ruta>> getRutas() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/$endpoint'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/$endpoint/'), // Agregado / y /api/
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -24,10 +25,11 @@ class RutaService {
     }
   }
 
-  /// 🔹 Obtener una ruta por ID
   Future<Ruta> getRutaById(int id) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/$endpoint/$id'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/$endpoint/$id'), // Agregado /api/
+      );
 
       if (response.statusCode == 200) {
         return Ruta.fromJson(json.decode(response.body));
@@ -39,11 +41,10 @@ class RutaService {
     }
   }
 
-  /// 🔹 Crear una nueva ruta
   Future<Ruta> createRuta(Ruta ruta) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/api/$endpoint/'),
+        Uri.parse('$baseUrl/api/$endpoint/'), // Corregido URL
         headers: {'Content-Type': 'application/json'},
         body: json.encode(ruta.toJson()),
       );
@@ -60,11 +61,10 @@ class RutaService {
     }
   }
 
-  /// 🔹 Actualizar una ruta existente
   Future<Ruta> updateRuta(int id, Ruta ruta) async {
     try {
       final response = await http.put(
-        Uri.parse('$baseUrl/$endpoint/$id'),
+        Uri.parse('$baseUrl/api/$endpoint/$id'), // Agregado /api/
         headers: {'Content-Type': 'application/json'},
         body: json.encode(ruta.toJson()),
       );
@@ -81,10 +81,11 @@ class RutaService {
     }
   }
 
-  /// 🔹 Eliminar una ruta
   Future<void> deleteRuta(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/$endpoint/$id'));
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/$endpoint/$id'), // Agregado /api/
+      );
 
       if (response.statusCode != 204 && response.statusCode != 200) {
         throw Exception(

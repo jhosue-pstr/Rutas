@@ -1,4 +1,4 @@
-# bus.py
+from __future__ import annotations
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional
 import datetime
@@ -11,28 +11,27 @@ class BusBase(SQLModel):
     marca: Optional[str] = None
 
 class Bus(BusBase, table=True):
-    id_bus: Optional[int] = Field(default=None, primary_key=True)
-    chofer_id: Optional[int] = Field(default=None, foreign_key="chofer.id_chofer")
-    ruta_id: Optional[int] = Field(default=None, foreign_key="ruta.IdRuta")
+    IdBus: Optional[int] = Field(default=None, primary_key=True)  # PascalCase
+    ChoferId: Optional[int] = Field(default=None, foreign_key="chofer.IdChofer")  # PascalCase y foreign key corregida
+    RutaId: Optional[int] = Field(default=None, foreign_key="ruta.IdRuta")  # PascalCase
 
     chofer: Optional["Chofer"] = Relationship(back_populates="buses")
     ruta: Optional["Ruta"] = Relationship(back_populates="buses")
 
 class BusCreate(BusBase):
-    chofer_id: Optional[int] = None
-    ruta_id: Optional[int] = None
+    ChoferId: Optional[int] = None  # PascalCase
+    RutaId: Optional[int] = None   # PascalCase
 
 class BusPublic(BusBase):
-    id_bus: int
-    chofer_id: Optional[int]
-    ruta_id: Optional[int]
+    IdBus: int                    # PascalCase
+    ChoferId: Optional[int]       # PascalCase
+    RutaId: Optional[int]         # PascalCase
 
 class BusUpdate(SQLModel):
     placa: Optional[str] = None
     capacidad: Optional[int] = None
-    ruta_id: Optional[int] = None
-    chofer_id: Optional[int] = None
+    RutaId: Optional[int] = None    # PascalCase
+    ChoferId: Optional[int] = None  # PascalCase
     modelo: Optional[str] = None
     marca: Optional[str] = None
-
 Bus.update_forward_refs()

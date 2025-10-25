@@ -1,13 +1,13 @@
 class PuntoRuta {
-  final int idPunto;
-  final int rutaId;
+  final int IdPunto;
+  final int RutaId;
   final double latitud;
   final double longitud;
   final int orden;
 
   const PuntoRuta({
-    required this.idPunto,
-    required this.rutaId,
+    required this.IdPunto,
+    required this.RutaId,
     required this.latitud,
     required this.longitud,
     required this.orden,
@@ -15,19 +15,19 @@ class PuntoRuta {
 
   factory PuntoRuta.fromJson(Map<String, dynamic> json) {
     return PuntoRuta(
-      idPunto: json['IdPunto'] ?? 0,
-      rutaId: json['RutaId'] ?? 0,
-      latitud: (json['Latitud'] as num).toDouble(),
-      longitud: (json['Longitud'] as num).toDouble(),
-      orden: json['Orden'] ?? 0,
+      IdPunto: json['IdPunto'] ?? 0,
+      RutaId: json['RutaId'] ?? 0,
+      latitud: (json['latitud'] as num).toDouble(), // Cambiado de 'Latitud'
+      longitud: (json['longitud'] as num).toDouble(), // Cambiado de 'Longitud'
+      orden: json['orden'] ?? 0, // Cambiado de 'Orden'
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'IdPunto': idPunto,
-    'RutaId': rutaId,
-    'Latitud': latitud,
-    'Longitud': longitud,
-    'Orden': orden,
+    'IdPunto': IdPunto,
+    'RutaId': RutaId,
+    'latitud': latitud, // Cambiado
+    'longitud': longitud, // Cambiado
+    'orden': orden, // Cambiado
   };
 }

@@ -4,7 +4,6 @@ import '../../data/services/chofer_service.dart';
 class ChoferController {
   final ChoferService _choferService = ChoferService();
 
-  /// 🔹 Obtener todos los choferes
   Future<List<Chofer>> obtenerChoferes() async {
     try {
       return await _choferService.getChoferes();
@@ -13,7 +12,6 @@ class ChoferController {
     }
   }
 
-  /// 🔹 Obtener un chofer por ID
   Future<Chofer> obtenerChoferPorId(int id) async {
     try {
       return await _choferService.getChoferById(id);
@@ -22,7 +20,6 @@ class ChoferController {
     }
   }
 
-  /// 🔹 Crear un nuevo chofer
   Future<Chofer> crearChofer(Chofer chofer) async {
     try {
       return await _choferService.createChofer(chofer);
@@ -31,7 +28,6 @@ class ChoferController {
     }
   }
 
-  /// 🔹 Actualizar un chofer existente
   Future<Chofer> actualizarChofer(int id, Map<String, dynamic> datos) async {
     try {
       return await _choferService.updateChofer(id, datos);
@@ -40,7 +36,6 @@ class ChoferController {
     }
   }
 
-  /// 🔹 Eliminar un chofer
   Future<void> eliminarChofer(int id) async {
     try {
       await _choferService.deleteChofer(id);

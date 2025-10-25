@@ -8,7 +8,7 @@ class ChoferService {
 
   Future<List<Chofer>> getChoferes() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/$endpoint/'));
+      final response = await http.get(Uri.parse('$baseUrl/api/$endpoint/'));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -25,7 +25,7 @@ class ChoferService {
 
   Future<Chofer> getChoferById(int id) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/$endpoint/$id'));
+      final response = await http.get(Uri.parse('$baseUrl/api/$endpoint/$id'));
 
       if (response.statusCode == 200) {
         return Chofer.fromJson(json.decode(response.body));
@@ -40,7 +40,7 @@ class ChoferService {
   Future<Chofer> createChofer(Chofer chofer) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/$endpoint/'),
+        Uri.parse('$baseUrl/api/$endpoint/'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(chofer.toJson()),
       );
@@ -60,7 +60,7 @@ class ChoferService {
   Future<Chofer> updateChofer(int id, Map<String, dynamic> datos) async {
     try {
       final response = await http.patch(
-        Uri.parse('$baseUrl/$endpoint/$id'),
+        Uri.parse('$baseUrl/api/$endpoint/$id'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(datos),
       );
@@ -79,7 +79,9 @@ class ChoferService {
 
   Future<void> deleteChofer(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/$endpoint/$id'));
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/$endpoint/$id'),
+      );
 
       if (response.statusCode != 204 && response.statusCode != 200) {
         throw Exception(

@@ -1,4 +1,3 @@
-# chofer.py
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 import datetime
@@ -14,7 +13,7 @@ class ChoferBase(SQLModel):
     licencia_conducir: Optional[str] = None
 
 class Chofer(ChoferBase, table=True):
-    id_chofer: Optional[int] = Field(default=None, primary_key=True)
+    IdChofer: Optional[int] = Field(default=None, primary_key=True)  # PascalCase
     fecha_ingreso: datetime.datetime = Field(
         default_factory=datetime.datetime.utcnow,
         sa_column=Column(DateTime(timezone=True))
@@ -27,7 +26,7 @@ class ChoferCreate(ChoferBase):
     pass
 
 class ChoferPublic(ChoferBase):
-    id_chofer: int
+    IdChofer: int  # PascalCase
     fecha_ingreso: datetime.datetime
     estado: bool
 

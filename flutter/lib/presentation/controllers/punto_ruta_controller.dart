@@ -4,7 +4,6 @@ import '../../data/services/punto_ruta_service.dart';
 class PuntoRutaController {
   final PuntoRutaService _puntoRutaService = PuntoRutaService();
 
-  /// 🔹 Obtener todos los puntos de ruta
   Future<List<PuntoRuta>> obtenerPuntosRuta() async {
     try {
       return await _puntoRutaService.getPuntosRuta();
@@ -13,7 +12,6 @@ class PuntoRutaController {
     }
   }
 
-  /// 🔹 Obtener un punto de ruta por ID
   Future<PuntoRuta> obtenerPuntoRutaPorId(int id) async {
     try {
       return await _puntoRutaService.getPuntoRutaById(id);
@@ -22,7 +20,6 @@ class PuntoRutaController {
     }
   }
 
-  /// 🔹 Crear un nuevo punto de ruta
   Future<PuntoRuta> crearPuntoRuta(PuntoRuta punto) async {
     try {
       return await _puntoRutaService.createPuntoRuta(punto);
@@ -31,7 +28,6 @@ class PuntoRutaController {
     }
   }
 
-  /// 🔹 Actualizar un punto de ruta existente
   Future<PuntoRuta> actualizarPuntoRuta(
     int id,
     Map<String, dynamic> datos,
@@ -43,7 +39,6 @@ class PuntoRutaController {
     }
   }
 
-  /// 🔹 Eliminar un punto de ruta
   Future<void> eliminarPuntoRuta(int id) async {
     try {
       await _puntoRutaService.deletePuntoRuta(id);

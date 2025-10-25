@@ -4,7 +4,6 @@ import '../../data/services/ruta_service.dart';
 class RutaController {
   final RutaService _rutaService = RutaService();
 
-  /// 🔹 Obtener todas las rutas
   Future<List<Ruta>> obtenerRutas() async {
     try {
       return await _rutaService.getRutas();
@@ -13,7 +12,6 @@ class RutaController {
     }
   }
 
-  /// 🔹 Obtener una ruta por su ID
   Future<Ruta> obtenerRutaPorId(int id) async {
     try {
       return await _rutaService.getRutaById(id);
@@ -22,7 +20,6 @@ class RutaController {
     }
   }
 
-  /// 🔹 Crear una nueva ruta
   Future<Ruta> crearRuta(Ruta ruta) async {
     try {
       return await _rutaService.createRuta(ruta);
@@ -31,7 +28,6 @@ class RutaController {
     }
   }
 
-  /// 🔹 Actualizar una ruta existente
   Future<Ruta> actualizarRuta(int id, Ruta ruta) async {
     try {
       return await _rutaService.updateRuta(id, ruta);
@@ -40,7 +36,6 @@ class RutaController {
     }
   }
 
-  /// 🔹 Eliminar una ruta
   Future<void> eliminarRuta(int id) async {
     try {
       await _rutaService.deleteRuta(id);

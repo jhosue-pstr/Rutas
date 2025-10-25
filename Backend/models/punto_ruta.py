@@ -8,13 +8,13 @@ class PuntoRutaBase(SQLModel):
     orden: int
 
 class PuntoRuta(PuntoRutaBase, table=True):
-    IdPunto: Optional[int] = Field(default=None, primary_key=True)  # PascalCase
-    RutaId: Optional[int] = Field(default=None, foreign_key="ruta.IdRuta")  # ¡Importante! Foreign key debe coincidir
-
-    ruta: Optional["Ruta"] = Relationship(back_populates="puntos")
+    IdPunto: Optional[int] = Field(default=None, primary_key=True)
+    RutaId: Optional[int] = Field(default=None, foreign_key="ruta.IdRuta")
+    
+    ruta: Optional[Ruta] = Relationship(back_populates="puntos")
 
 class PuntoRutaCreate(PuntoRutaBase):
-    RutaId: int  # PascalCase aquí también
+    RutaId: int
 
 class PuntoRutaPublic(PuntoRutaBase):
     IdPunto: int
@@ -24,6 +24,4 @@ class PuntoRutaUpdate(SQLModel):
     latitud: Optional[float] = None
     longitud: Optional[float] = None
     orden: Optional[int] = None
-    RutaId: Optional[int] = None  # PascalCase
-
-PuntoRuta.update_forward_refs()
+    RutaId: Optional[int] = None

@@ -1,4 +1,4 @@
-# ruta.py
+from __future__ import annotations
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 import datetime
@@ -17,8 +17,8 @@ class Ruta(RutaBase, table=True):
     )
 
     # relaciones
-    buses: List["Bus"] = Relationship(back_populates="ruta")
-    puntos: List["PuntoRuta"] = Relationship(back_populates="ruta")
+    buses: List[Bus] = Relationship(back_populates="ruta")
+    puntos: List[PuntoRuta] = Relationship(back_populates="ruta")
 
 class RutaCreate(RutaBase):
     pass
@@ -31,5 +31,3 @@ class RutaUpdate(SQLModel):
     nombre: Optional[str] = None
     color: Optional[str] = None
     descripcion: Optional[str] = None
-
-Ruta.update_forward_refs()

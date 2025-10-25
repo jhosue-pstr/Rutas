@@ -11,27 +11,26 @@ class BusBase(SQLModel):
     marca: Optional[str] = None
 
 class Bus(BusBase, table=True):
-    IdBus: Optional[int] = Field(default=None, primary_key=True)  # PascalCase
-    ChoferId: Optional[int] = Field(default=None, foreign_key="chofer.IdChofer")  # PascalCase y foreign key corregida
-    RutaId: Optional[int] = Field(default=None, foreign_key="ruta.IdRuta")  # PascalCase
+    IdBus: Optional[int] = Field(default=None, primary_key=True)
+    ChoferId: Optional[int] = Field(default=None, foreign_key="chofer.IdChofer")
+    RutaId: Optional[int] = Field(default=None, foreign_key="ruta.IdRuta")
 
-    chofer: Optional["Chofer"] = Relationship(back_populates="buses")
-    ruta: Optional["Ruta"] = Relationship(back_populates="buses")
+    chofer: Optional[Chofer] = Relationship(back_populates="buses")
+    ruta: Optional[Ruta] = Relationship(back_populates="buses")
 
 class BusCreate(BusBase):
-    ChoferId: Optional[int] = None  # PascalCase
-    RutaId: Optional[int] = None   # PascalCase
+    ChoferId: Optional[int] = None
+    RutaId: Optional[int] = None
 
 class BusPublic(BusBase):
-    IdBus: int                    # PascalCase
-    ChoferId: Optional[int]       # PascalCase
-    RutaId: Optional[int]         # PascalCase
+    IdBus: int
+    ChoferId: Optional[int]
+    RutaId: Optional[int]
 
 class BusUpdate(SQLModel):
     placa: Optional[str] = None
     capacidad: Optional[int] = None
-    RutaId: Optional[int] = None    # PascalCase
-    ChoferId: Optional[int] = None  # PascalCase
+    RutaId: Optional[int] = None
+    ChoferId: Optional[int] = None
     modelo: Optional[str] = None
     marca: Optional[str] = None
-Bus.update_forward_refs()

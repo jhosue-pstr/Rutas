@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rutasfrontend/presentation/screens/DibujarRutasScreen.dart';
 import 'package:rutasfrontend/presentation/screens/home_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -31,7 +32,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       // 👇 Navegamos correctamente al HomeScreen
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (context) => const DibujarRutasScreen()),
       );
     }
   }

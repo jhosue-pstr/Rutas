@@ -10,7 +10,7 @@ class RutaBase(SQLModel):
     descripcion: Optional[str] = None
 
 class Ruta(RutaBase, table=True):
-    id_ruta: Optional[int] = Field(default=None, primary_key=True)
+    IdRuta: Optional[int] = Field(default=None, primary_key=True)
     fecha_registro: datetime.datetime = Field(
         default_factory=datetime.datetime.utcnow,
         sa_column=Column(DateTime(timezone=True))

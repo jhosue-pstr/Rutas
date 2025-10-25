@@ -3,6 +3,7 @@ from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional
 from sqlalchemy import Column, DateTime
 import datetime
+from .ruta import Ruta
 
 class PuntoRutaBase(SQLModel):
     Latitud: float

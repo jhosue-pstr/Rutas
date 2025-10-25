@@ -3,7 +3,6 @@ from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 import datetime
 from sqlalchemy import Column, DateTime
-from .bus import Bus  # asegúrate de importar
 
 class RutaBase(SQLModel):
     nombre: str
@@ -17,10 +16,16 @@ class Ruta(RutaBase, table=True):
         sa_column=Column(DateTime(timezone=True))
     )
 
-    buses: List["Bus"] = Relationship(back_populates="ruta")  # <- aquí todo en minúscula
+    # relaciones
+    buses: List["Bus"] = Relationship(back_populates="ruta")
+    puntos: List["PuntoRuta"] = Relationship(back_populates="ruta")
 
 class RutaCreate(RutaBase):
     pass
+
+class RutaPublic(RutaBase):
+    id_ruta: int
+    fecha_registro: datetime.datetime
 
 class RutaUpdate(SQLModel):
     nombre: Optional[str] = None

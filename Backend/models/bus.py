@@ -1,41 +1,38 @@
 # bus.py
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional
-from sqlalchemy import Column, DateTime
 import datetime
-from .ruta import Ruta
-from .chofer import Chofer
-
+from sqlalchemy import Column, DateTime
 
 class BusBase(SQLModel):
-    Placa: str
-    Capacidad: Optional[int] = 40
-    Modelo: Optional[str] = None
-    Marca: Optional[str] = None
+    placa: str
+    capacidad: Optional[int] = 40
+    modelo: Optional[str] = None
+    marca: Optional[str] = None
 
 class Bus(BusBase, table=True):
-    IdBus: Optional[int] = Field(default=None, primary_key=True)
-    ChoferId: Optional[int] = Field(default=None, foreign_key="chofer.IdChofer")
-    RutaId: Optional[int] = Field(default=None, foreign_key="ruta.IdRuta")
+    id_bus: Optional[int] = Field(default=None, primary_key=True)
+    chofer_id: Optional[int] = Field(default=None, foreign_key="chofer.id_chofer")
+    ruta_id: Optional[int] = Field(default=None, foreign_key="ruta.id_ruta")
 
     chofer: Optional["Chofer"] = Relationship(back_populates="buses")
-    ruta: Optional["Ruta"] = Relationship(back_populates="Buses")
+    ruta: Optional["Ruta"] = Relationship(back_populates="buses")
 
 class BusCreate(BusBase):
-    ChoferId: Optional[int] = None
-    RutaId: Optional[int] = None
+    chofer_id: Optional[int] = None
+    ruta_id: Optional[int] = None
 
 class BusPublic(BusBase):
-    IdBus: int
-    ChoferId: Optional[int]
-    RutaId: Optional[int]
+    id_bus: int
+    chofer_id: Optional[int]
+    ruta_id: Optional[int]
 
 class BusUpdate(SQLModel):
-    Placa: Optional[str] = None
-    Capacidad: Optional[int] = None
-    RutaId: Optional[int] = None
-    ChoferId: Optional[int] = None
-    Modelo: Optional[str] = None
-    Marca: Optional[str] = None
+    placa: Optional[str] = None
+    capacidad: Optional[int] = None
+    ruta_id: Optional[int] = None
+    chofer_id: Optional[int] = None
+    modelo: Optional[str] = None
+    marca: Optional[str] = None
 
 Bus.update_forward_refs()

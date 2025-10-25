@@ -5,21 +5,21 @@ import datetime
 from sqlalchemy import Column, DateTime
 
 class ChoferBase(SQLModel):
-    Nombre: str
-    Apellido: Optional[str] = None
-    DNI: Optional[str] = None
-    Telefono: Optional[str] = None
-    FotoURL: Optional[str] = None
-    QRPagoURL: Optional[str] = None
-    LicenciaConducir: Optional[str] = None
+    nombre: str
+    apellido: Optional[str] = None
+    dni: Optional[str] = None
+    telefono: Optional[str] = None
+    foto_url: Optional[str] = None
+    qr_pago_url: Optional[str] = None
+    licencia_conducir: Optional[str] = None
 
 class Chofer(ChoferBase, table=True):
-    IdChofer: Optional[int] = Field(default=None, primary_key=True)
-    FechaIngreso: datetime.datetime = Field(
+    id_chofer: Optional[int] = Field(default=None, primary_key=True)
+    fecha_ingreso: datetime.datetime = Field(
         default_factory=datetime.datetime.utcnow,
         sa_column=Column(DateTime(timezone=True))
     )
-    Estado: bool = True
+    estado: bool = True
 
     buses: List["Bus"] = Relationship(back_populates="chofer")
 
@@ -27,17 +27,17 @@ class ChoferCreate(ChoferBase):
     pass
 
 class ChoferPublic(ChoferBase):
-    IdChofer: int
-    FechaIngreso: datetime.datetime
-    Estado: bool
+    id_chofer: int
+    fecha_ingreso: datetime.datetime
+    estado: bool
 
 class ChoferUpdate(SQLModel):
-    Nombre: Optional[str] = None
-    Apellido: Optional[str] = None
-    DNI: Optional[str] = None
-    Telefono: Optional[str] = None
-    QRPagoURL: Optional[str] = None
-    FotoURL: Optional[str] = None
-    LicenciaConducir: Optional[str] = None
+    nombre: Optional[str] = None
+    apellido: Optional[str] = None
+    dni: Optional[str] = None
+    telefono: Optional[str] = None
+    foto_url: Optional[str] = None
+    qr_pago_url: Optional[str] = None
+    licencia_conducir: Optional[str] = None
 
 Chofer.update_forward_refs()

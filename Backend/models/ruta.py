@@ -1,4 +1,3 @@
-from __future__ import annotations
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 import datetime
@@ -16,9 +15,9 @@ class Ruta(RutaBase, table=True):
         sa_column=Column(DateTime(timezone=True))
     )
 
-    # relaciones
-    buses: List[Bus] = Relationship(back_populates="ruta")
-    puntos: List[PuntoRuta] = Relationship(back_populates="ruta")
+    # relaciones con strings
+    buses: List["Bus"] = Relationship(back_populates="ruta")
+    puntos: List["PuntoRuta"] = Relationship(back_populates="ruta")
 
 class RutaCreate(RutaBase):
     pass

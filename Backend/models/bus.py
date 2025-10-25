@@ -1,4 +1,3 @@
-from __future__ import annotations
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional
 import datetime
@@ -15,8 +14,8 @@ class Bus(BusBase, table=True):
     ChoferId: Optional[int] = Field(default=None, foreign_key="chofer.IdChofer")
     RutaId: Optional[int] = Field(default=None, foreign_key="ruta.IdRuta")
 
-    chofer: Optional[Chofer] = Relationship(back_populates="buses")
-    ruta: Optional[Ruta] = Relationship(back_populates="buses")
+    chofer: Optional["Chofer"] = Relationship(back_populates="buses")
+    ruta: Optional["Ruta"] = Relationship(back_populates="buses")
 
 class BusCreate(BusBase):
     ChoferId: Optional[int] = None

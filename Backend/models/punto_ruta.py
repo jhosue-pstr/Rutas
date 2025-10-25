@@ -1,4 +1,3 @@
-from __future__ import annotations
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional
 
@@ -11,7 +10,7 @@ class PuntoRuta(PuntoRutaBase, table=True):
     IdPunto: Optional[int] = Field(default=None, primary_key=True)
     RutaId: Optional[int] = Field(default=None, foreign_key="ruta.IdRuta")
     
-    ruta: Optional[Ruta] = Relationship(back_populates="puntos")
+    ruta: Optional["Ruta"] = Relationship(back_populates="puntos")
 
 class PuntoRutaCreate(PuntoRutaBase):
     RutaId: int

@@ -1,4 +1,3 @@
-from __future__ import annotations
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 import datetime
@@ -21,7 +20,7 @@ class Chofer(ChoferBase, table=True):
     )
     estado: bool = True
 
-    buses: List[Bus] = Relationship(back_populates="chofer")
+    buses: List["Bus"] = Relationship(back_populates="chofer")
 
 class ChoferCreate(ChoferBase):
     pass

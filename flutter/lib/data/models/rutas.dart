@@ -21,27 +21,27 @@ class Ruta {
 
   factory Ruta.fromJson(Map<String, dynamic> json) {
     return Ruta(
-      idRuta: json['IdRuta'] ?? 0,
-      nombre: json['Nombre'] ?? '',
-      color: json['Color'],
-      descripcion: json['Descripcion'],
-      fechaRegistro: DateTime.parse(json['FechaRegistro']),
+      idRuta: json['id_ruta'] ?? 0,
+      nombre: json['nombre'] ?? '',
+      color: json['color'],
+      descripcion: json['descripcion'],
+      fechaRegistro: DateTime.parse(json['fecha_registro']),
       puntos:
-          (json['Puntos'] as List<dynamic>?)
+          (json['puntos'] as List<dynamic>?)
               ?.map((p) => PuntoRuta.fromJson(p as Map<String, dynamic>))
               .toList() ??
           [],
-      buses: json['Buses'] as List<dynamic>?,
+      buses: json['buses'] as List<dynamic>?,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'IdRuta': idRuta,
-    'Nombre': nombre,
-    'Color': color,
-    'Descripcion': descripcion,
-    'FechaRegistro': fechaRegistro.toIso8601String(),
-    'Puntos': puntos.map((p) => p.toJson()).toList(),
-    'Buses': buses,
+    'id_ruta': idRuta,
+    'nombre': nombre,
+    'color': color,
+    'descripcion': descripcion,
+    'fecha_registro': fechaRegistro.toIso8601String(),
+    'puntos': puntos.map((p) => p.toJson()).toList(),
+    'buses': buses,
   };
 }

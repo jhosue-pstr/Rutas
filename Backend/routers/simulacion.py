@@ -14,22 +14,25 @@ simulation_task = None
 
 def esperar_conexion_db():
     """Espera hasta que la base de datos esté disponible"""
-    max_intentos = 30
+    max_intentos = 60  # Más intentos
     intento = 0
+    
+    print("🕐 Esperando a que la base de datos esté lista...")
     
     while intento < max_intentos:
         try:
             # Crear una sesión temporal para probar la conexión
             with Session(engine) as session:
                 session.exec(text("SELECT 1"))
-                print("✅ Base de datos conectada")
+                print("✅ Base de datos conectada y lista")
                 return True
         except Exception as e:
             intento += 1
-            print(f"⏳ Esperando base de datos... (intento {intento}/{max_intentos}) - Error: {e}")
-            time.sleep(2)
+            if intento % 5 == 0:  # Log cada 5 intentos
+                print(f"⏳ Esperando base de datos... (intento {intento}/{max_intentos})")
+            time.sleep(3)  # Esperar 3 segundos entre intentos
     
-    print("❌ No se pudo conectar a la base de datos después de 30 intentos")
+    print("❌ No se pudo conectar a la base de datos después de 60 intentos")
     return False
 
 def iniciar_simulacion_en_segundo_plano():
@@ -39,7 +42,9 @@ def iniciar_simulacion_en_segundo_plano():
     try:
         print("🎬 INICIANDO SIMULADOR EN SEGUNDO PLANO...")
         
-        # Esperar a que la DB esté lista
+        # Esperar a que la DB esté lista (más tiempo)
+        time.sleep(10)  # Esperar 10 segundos adicionales antes de empezar
+        
         if not esperar_conexion_db():
             print("❌ No se pudo conectar a la DB, cancelando simulación")
             return
@@ -47,6 +52,8 @@ def iniciar_simulacion_en_segundo_plano():
         # Crear una sesión directamente con el engine
         session = Session(engine)
         bus_simulator = BusSimulator(session)
+        
+        print("✅ Simulador listo, iniciando simulación...")
         
         # Crear event loop para el hilo
         loop = asyncio.new_event_loop()
@@ -67,6 +74,9 @@ async def startup_event():
     
     print("🚀 INICIANDO SIMULADOR DE BUSES...")
     
+    # Dar más tiempo antes de iniciar el simulador
+    await asyncio.sleep(15)
+    
     # Iniciar simulación en un hilo separado
     simulation_thread = threading.Thread(target=iniciar_simulacion_en_segundo_plano)
     simulation_thread.daemon = True
@@ -79,8 +89,8 @@ async def startup_event():
 
 async def broadcast_continuo():
     """Envía ubicaciones cada 3 segundos a los clientes"""
-    # Esperar un poco antes de empezar el broadcast
-    await asyncio.sleep(15)
+    # Esperar mucho más antes de empezar el broadcast
+    await asyncio.sleep(30)
     print("📡 INICIANDO BROADCAST DE UBICACIONES...")
     
     while True:

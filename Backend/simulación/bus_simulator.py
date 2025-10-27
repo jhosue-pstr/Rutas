@@ -12,28 +12,31 @@ class BusSimulator:
         self.session = session
         self.buses_activos = {}
         
-async def iniciar_simulacion(self):
-    """Inicia la simulación de todos los buses"""
-    print("🔍 BUSCANDO BUSES EN LA BASE DE DATOS...")
+    async def iniciar_simulacion(self):
+        """Inicia la simulación de todos los buses"""
+        print("🔍 BUSCANDO BUSES EN LA BASE DE DATOS...")
     
-    buses = self.session.exec(select(Bus)).all()
-    print(f"📊 Total de buses encontrados: {len(buses)}")
+        buses = self.session.exec(select(Bus)).all()
+        print(f"📊 Total de buses encontrados: {len(buses)}")
     
-    for bus in buses:
-        print(f"🚌 Bus {bus.IdBus}: Placa {bus.placa}, RutaId {bus.RutaId}")
+        for bus in buses:
+            print(f"🚌 Bus {bus.IdBus}: Placa {bus.placa}, RutaId {bus.RutaId}")
         
-    buses_con_ruta = [b for b in buses if b.RutaId is not None]
-    print(f"🎯 Buses con ruta asignada: {len(buses_con_ruta)}")
+        buses_con_ruta = [b for b in buses if b.RutaId is not None]
+        print(f"🎯 Buses con ruta asignada: {len(buses_con_ruta)}")
     
-    for bus in buses_con_ruta:
-        await self._inicializar_bus(bus)
+        for bus in buses_con_ruta:
+            await self._inicializar_bus(bus)
     
-    print(f"🚀 Simulación iniciada con {len(self.buses_activos)} buses activos")
+        print(f"🚀 Simulación iniciada con {len(self.buses_activos)} buses activos")
     
     # Ejecutar simulación continua
-    while True:
-        await self._actualizar_ubicaciones()
-        await asyncio.sleep(10)
+        while True:
+            await self._actualizar_ubicaciones()
+            await asyncio.sleep(10)
+
+
+
     async def _inicializar_bus(self, bus: Bus):
         """Inicializa un bus en una posición aleatoria de su ruta"""
         ruta = self.session.get(Ruta, bus.RutaId)

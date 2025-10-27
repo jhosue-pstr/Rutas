@@ -18,6 +18,7 @@ class BusSimulator:
         print("🎯 INICIANDO SIMULACIÓN DE BUSES...")
         
         try:
+            # Usar la sesión que ya tenemos
             buses = self.session.exec(select(Bus)).all()
             print(f"📊 Total de buses en BD: {len(buses)}")
             
@@ -33,10 +34,12 @@ class BusSimulator:
             # Simulación continua
             while True:
                 await self._actualizar_ubicaciones()
-                await asyncio.sleep(5)  # Actualizar cada 5 segundos
+                await asyncio.sleep(5)
                 
         except Exception as e:
             print(f"❌ ERROR en simulación: {e}")
+            import traceback
+            traceback.print_exc()
     
     async def _inicializar_bus(self, bus: Bus):
         """Inicializa un bus en una posición aleatoria de su ruta"""
@@ -70,38 +73,6 @@ class BusSimulator:
         except Exception as e:
             print(f"   ❌ Error inicializando bus {bus.IdBus}: {e}")
     
-    async def _actualizar_ubicaciones(self):
-        """Actualiza la ubicación de todos los buses activos"""
-        for bus_id, datos in self.buses_activos.items():
-            try:
-                puntos = datos['puntos_ruta']
-                punto_actual = datos['punto_actual']
-                
-                if 0 <= punto_actual < len(puntos) - 1:
-                    punto_obj = puntos[punto_actual]
-                    next_punto = puntos[punto_actual + datos['direccion']]
-                    
-                    # Mover el bus
-                    datos['latitud'] += (next_punto.latitud - punto_obj.latitud) * datos['velocidad']
-                    datos['longitud'] += (next_punto.longitud - punto_obj.longitud) * datos['velocidad']
-                    
-                    # Verificar si llegó al siguiente punto
-                    distancia = self._calcular_distancia(
-                        datos['latitud'], datos['longitud'],
-                        next_punto.latitud, next_punto.longitud
-                    )
-                    
-                    if distancia < 0.001:
-                        datos['punto_actual'] += datos['direccion']
-                        
-                        # Cambiar dirección en los extremos
-                        if datos['punto_actual'] >= len(puntos) - 1:
-                            datos['direccion'] = -1
-                        elif datos['punto_actual'] <= 0:
-                            datos['direccion'] = 1
-                            
-            except Exception as e:
-                print(f"❌ Error actualizando bus {bus_id}: {e}")
     
     def _calcular_distancia(self, lat1, lon1, lat2, lon2):
         return ((lat2 - lat1) ** 2 + (lon2 - lon1) ** 2) ** 0.5

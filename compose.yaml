@@ -1,7 +1,7 @@
 services:
   backend:
     build: ./Backend
-    container_name: fastapi-backend-RS
+    container_name: fastapi-backend-Ruta
     ports:
       - "9000:8000"
     volumes:

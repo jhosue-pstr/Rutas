@@ -12,7 +12,7 @@ def CrearUsuario(usuario: UsuarioCreate, session: Session) -> UsuarioPublic:
     existing_user = get_user_by_email(session, usuario.Correo)
     if existing_user:
         raise HTTPException(
-            status_code=400,
+            status_code=400,    
             detail="El correo ya está registrado"
         )
     

@@ -6,7 +6,7 @@ from datetime import datetime
 from sqlmodel import Session, select
 from models.bus import Bus
 from models.ruta import Ruta
-from models.punto_ruta import PuntoRuta
+from models.punto_ruta import PuntoRuta 
 
 class BusSimulator:
     def __init__(self, session: Session):
@@ -37,7 +37,7 @@ class BusSimulator:
             # Simulación continua
             while self.simulacion_activa:
                 await self._actualizar_ubicaciones()
-                await asyncio.sleep(3)  # Reducido a 3 segundos
+                await asyncio.sleep(3)
                 
         except Exception as e:
             print(f"❌ ERROR en simulación: {e}")
@@ -54,6 +54,7 @@ class BusSimulator:
                 print(f"   ❌ Ruta {bus.RutaId} no encontrada para bus {bus.IdBus}")
                 return
                 
+            # CORREGIDO: usar PuntoRuta sin tilde
             puntos = self.session.exec(
                 select(PuntoRuta).where(PuntoRuta.RutaId == bus.RutaId)
             ).all()
@@ -64,21 +65,22 @@ class BusSimulator:
                 punto_inicial = random.choice(puntos)
                 self.buses_activos[bus.IdBus] = {
                     'bus': bus,
-                    'latitud': punto_inicial.Latitud,
-                    'longitud': punto_inicial.Longitud,
-                    'punto_actual': 0,
+                    'latitud': punto_inicial.Latitud,  # ← CORREGIDO: con mayúscula
+                    'longitud': punto_inicial.Longitud, # ← CORREGIDO: con mayúscula
                     'puntos_ruta': puntos,
-                    'velocidad': random.uniform(0.0001, 0.0003),
-                    'direccion': 1,
                     'proximo_punto': 0,
+                    'velocidad': random.uniform(0.0001, 0.0003),
                     'ultima_actualizacion': datetime.now()
                 }
-                print(f"   ✅ Bus {bus.IdBus} activo en: {punto_inicial.Latitud:.4f}, {punto_inicial.Longitud:.4f}")
+                print(f"   ✅ Bus {bus.IdBus} ({bus.placa}) activo en ruta {ruta.nombre}")
+                print(f"   📍 Posición inicial: {punto_inicial.Latitud:.6f}, {punto_inicial.Longitud:.6f}")
             else:
-                print(f"   ❌ No hay puntos de ruta para bus {bus.IdBus}")
+                print(f"   ❌ No hay puntos de ruta para bus {bus.IdBus} en ruta {bus.RutaId}")
                 
         except Exception as e:
             print(f"   ❌ Error inicializando bus {bus.IdBus}: {e}")
+            import traceback
+            traceback.print_exc()
     
     async def _actualizar_ubicaciones(self):
         """Actualiza las ubicaciones de todos los buses"""
@@ -112,8 +114,9 @@ class BusSimulator:
             # Si está muy cerca, pasar al siguiente punto
             if distancia < 0.0001:  # Aproximadamente 11 metros
                 datos['proximo_punto'] = siguiente_idx
+                print(f"   🚏 Bus {bus_id} llegó al punto {punto_actual_idx}, avanzando a {siguiente_idx}")
                 # Pequeña pausa en el paradero
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(1)
             else:
                 # Mover hacia el siguiente punto
                 factor = datos['velocidad'] / max(distancia, 0.0001)
@@ -125,6 +128,10 @@ class BusSimulator:
                 datos['latitud'] = nueva_lat
                 datos['longitud'] = nueva_lon
                 datos['ultima_actualizacion'] = datetime.now()
+                
+                # Debug: mostrar movimiento ocasionalmente
+                if random.random() < 0.1:  # 10% de probabilidad
+                    print(f"   🚌 Bus {bus_id} moviéndose: {nueva_lat:.6f}, {nueva_lon:.6f}")
                 
         except Exception as e:
             print(f"❌ Error moviendo bus {bus_id}: {e}")

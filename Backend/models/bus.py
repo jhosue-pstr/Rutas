@@ -59,7 +59,9 @@ class Bus(BusBase, table=True):
     # SOLO estas relaciones - ELIMINA completamente paradero
     chofer: Optional["Chofer"] = Relationship(back_populates="buses")
     ruta: Optional["Ruta"] = Relationship(back_populates="buses")
-    favoritos: Optional["BusFavorito"] = Relationship(back_populates="bus")
+    # favoritos: Optional["BusFavorito"] = Relationship(back_populates="bus")
+    paradero: Optional["Paradero"] = Relationship(back_populates="bus")
+    busfavorito:Optional["BusFavorito"]= Relationship(back_populates="bus")
 
 class BusCreate(BusBase):
     ChoferId: Optional[int] = None

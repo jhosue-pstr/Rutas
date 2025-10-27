@@ -11,17 +11,24 @@ class ConnectionManager:
         self.active_connections.append(websocket)
     
     def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
     
     async def broadcast_ubicaciones(self, ubicaciones: dict):
         """Envía las ubicaciones a todos los clientes conectados"""
+        disconnected = []
         for connection in self.active_connections:
             try:
                 await connection.send_json({
                     "type": "ubicaciones_buses",
                     "data": ubicaciones
                 })
-            except:
-                self.disconnect(connection)
+            except Exception as e:
+                print(f"❌ Error enviando a cliente: {e}")
+                disconnected.append(connection)
+        
+        # Remover conexiones desconectadas
+        for connection in disconnected:
+            self.disconnect(connection)
 
 manager = ConnectionManager()

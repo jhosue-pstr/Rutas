@@ -1,3 +1,4 @@
+# simulación/__init__.py (o donde tengas el router principal)
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from sqlmodel import Session
 from config.database import get_session, engine
@@ -8,31 +9,30 @@ import threading
 import time
 from sqlalchemy import text
 
-router = APIRouter()
+router = APIRouter(prefix="/api/simulacion", tags=["simulacion"])
 bus_simulator = None
 simulation_task = None
 
 def esperar_conexion_db():
     """Espera hasta que la base de datos esté disponible"""
-    max_intentos = 60  # Más intentos
+    max_intentos = 30
     intento = 0
     
     print("🕐 Esperando a que la base de datos esté lista...")
     
     while intento < max_intentos:
         try:
-            # Crear una sesión temporal para probar la conexión
             with Session(engine) as session:
                 session.exec(text("SELECT 1"))
                 print("✅ Base de datos conectada y lista")
                 return True
         except Exception as e:
             intento += 1
-            if intento % 5 == 0:  # Log cada 5 intentos
+            if intento % 5 == 0:
                 print(f"⏳ Esperando base de datos... (intento {intento}/{max_intentos})")
-            time.sleep(3)  # Esperar 3 segundos entre intentos
+            time.sleep(2)
     
-    print("❌ No se pudo conectar a la base de datos después de 60 intentos")
+    print("❌ No se pudo conectar a la base de datos después de 30 intentos")
     return False
 
 def iniciar_simulacion_en_segundo_plano():
@@ -42,8 +42,8 @@ def iniciar_simulacion_en_segundo_plano():
     try:
         print("🎬 INICIANDO SIMULADOR EN SEGUNDO PLANO...")
         
-        # Esperar a que la DB esté lista (más tiempo)
-        time.sleep(10)  # Esperar 10 segundos adicionales antes de empezar
+        # Esperar un poco antes de empezar
+        time.sleep(5)
         
         if not esperar_conexion_db():
             print("❌ No se pudo conectar a la DB, cancelando simulación")
@@ -67,37 +67,17 @@ def iniciar_simulacion_en_segundo_plano():
         import traceback
         traceback.print_exc()
 
-@router.on_event("startup")
-async def startup_event():
-    """Inicia el simulador cuando arranca la app"""
-    global simulation_task
-    
-    print("🚀 INICIANDO SIMULADOR DE BUSES...")
-    
-    # Dar más tiempo antes de iniciar el simulador
-    await asyncio.sleep(15)
-    
-    # Iniciar simulación en un hilo separado
-    simulation_thread = threading.Thread(target=iniciar_simulacion_en_segundo_plano)
-    simulation_thread.daemon = True
-    simulation_thread.start()
-    
-    # Iniciar broadcasting en el hilo principal después de un delay
-    asyncio.create_task(broadcast_continuo())
-    
-    print("✅ SIMULADOR PROGRAMADO PARA INICIAR")
-
 async def broadcast_continuo():
     """Envía ubicaciones cada 3 segundos a los clientes"""
-    # Esperar mucho más antes de empezar el broadcast
-    await asyncio.sleep(30)
+    # Esperar antes de empezar el broadcast
+    await asyncio.sleep(10)
     print("📡 INICIANDO BROADCAST DE UBICACIONES...")
     
     while True:
-        if bus_simulator:
+        if bus_simulator and hasattr(bus_simulator, 'buses_activos'):
             try:
                 ubicaciones = bus_simulator.obtener_ubicaciones()
-                if ubicaciones:  # Solo enviar si hay datos
+                if ubicaciones:
                     await manager.broadcast_ubicaciones(ubicaciones)
                     print(f"📤 Broadcast: {len(ubicaciones)} buses")
                 else:
@@ -107,37 +87,68 @@ async def broadcast_continuo():
         else:
             print("⏳ Simulador no listo aún...")
         
-        await asyncio.sleep(5)
+        await asyncio.sleep(3)
+
+@router.on_event("startup")
+async def startup_event():
+    """Inicia el simulador cuando arranca la app"""
+    global simulation_task
+    
+    print("🚀 INICIANDO SIMULADOR DE BUSES...")
+    
+    # Esperar un poco antes de iniciar
+    await asyncio.sleep(10)
+    
+    # Iniciar simulación en un hilo separado
+    simulation_thread = threading.Thread(target=iniciar_simulacion_en_segundo_plano)
+    simulation_thread.daemon = True
+    simulation_thread.start()
+    
+    # Iniciar broadcasting en el hilo principal
+    asyncio.create_task(broadcast_continuo())
+    
+    print("✅ SIMULADOR PROGRAMADO PARA INICIAR")
 
 @router.websocket("/ws/ubicaciones-buses")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket para recibir ubicaciones en tiempo real"""
     await manager.connect(websocket)
-    print("🔌 Nuevo cliente conectado via WebSocket")
+    print(f"🔌 Nuevo cliente conectado via WebSocket. Total: {len(manager.active_connections)}")
     try:
         while True:
             # Mantener conexión activa
-            await websocket.receive_text()
+            data = await websocket.receive_text()
+            # Opcional: responder a ping del cliente
+            if data == "ping":
+                await websocket.send_text("pong")
     except WebSocketDisconnect:
         manager.disconnect(websocket)
-        print("🔌 Cliente desconectado")
+        print(f"🔌 Cliente desconectado. Restantes: {len(manager.active_connections)}")
 
-@router.get("/simulacion/ubicaciones")
+@router.get("/ubicaciones")
 def obtener_ubicaciones_actuales():
     """Endpoint HTTP para obtener ubicaciones actuales"""
-    if bus_simulator:
+    if bus_simulator and hasattr(bus_simulator, 'obtener_ubicaciones'):
         ubicaciones = bus_simulator.obtener_ubicaciones()
         print(f"📍 Endpoint HTTP: {len(ubicaciones)} buses")
         return ubicaciones
     return {"error": "Simulador no inicializado"}
 
-@router.get("/simulacion/estado")
+@router.get("/estado")
 def estado_simulacion():
     """Endpoint para ver el estado del simulador"""
     if bus_simulator:
         return {
             "estado": "activo",
             "buses_activos": len(bus_simulator.buses_activos),
-            "buses": bus_simulator.obtener_ubicaciones()
+            "total_buses": len(bus_simulator.buses_activos)
         }
     return {"estado": "inactivo"}
+
+@router.post("/detener")
+def detener_simulacion():
+    """Detiene la simulación"""
+    if bus_simulator:
+        bus_simulator.detener_simulacion()
+        return {"mensaje": "Simulación detenida"}
+    return {"mensaje": "Simulador no activo"}

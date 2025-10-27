@@ -1,29 +1,33 @@
 from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional
-import datetime
-from sqlalchemy import Column, DateTime
+from typing import Optional , List
+from models.bus import Bus
+from models.usuario import Usuario
 
 class BusFavoritoBase(SQLModel):
-    UsuarioId: int = Field(foreign_key="usuario.IdUsuario")
-    BusId: int = Field(foreign_key="bus.IdBus")
+    IdBus:int
+    IdUsuario:int
 
-class BusFavorito(BusFavoritoBase, table=True):
-    IdBusFavorito: Optional[int] = Field(default=None, primary_key=True)
-    FechaAgregado: datetime.datetime = Field(
-        default_factory=datetime.datetime.utcnow,
-        sa_column=Column(DateTime(timezone=True))
-    )
+class BusFavorito(BusFavoritoBase,table=True):
+    IdBusFavorito:Optional[int]=Field(default= None,primary_key=True)    
 
-    # relaciones
-    usuario: Optional["Usuario"] = Relationship(back_populates="buses_favoritos")
-    bus: Optional["Bus"] = Relationship(back_populates="favoritos")
+    IdBus :int = Field(foreign_key="bus.IdBus")
+    bus: Optional[Bus] = Relationship(back_populates="busfavorito")
+
+    
+    IdUsuario:int = Field(foreign_key="usuario.IdUsuario")
+    usuario: Optional["Usuario"]= Relationship(back_populates="busfavorito")
 
 class BusFavoritoCreate(BusFavoritoBase):
     pass
 
 class BusFavoritoPublic(BusFavoritoBase):
-    IdBusFavorito: int
-    FechaAgregado: datetime.datetime
+    IdBus:Optional[int]=None
+    IdUsuario:Optional[int]=None
 
-class BusFavoritoUpdate(SQLModel):
-    pass
+
+class BusFavoritoUpdate(BusFavoritoBase):
+       IdBus: Optional[int] = None    
+
+
+
+BusFavoritoPublic.model_rebuild()    

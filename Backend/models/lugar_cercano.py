@@ -1,27 +1,29 @@
 from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional
+from typing import Optional , List
+from models.paradero import Paradero
 
 class LugarCercanoBase(SQLModel):
-    nombre: str
-    tipo: Optional[str] = None  # restaurante, banco, hospital, etc.
-    distancia_metros: Optional[int] = None
+    nombre:str
 
-class LugarCercano(LugarCercanoBase, table=True):
-    IdLugarCercano: Optional[int] = Field(default=None, primary_key=True)
-    ParaderoId: Optional[int] = Field(default=None, foreign_key="paradero.IdParadero")
+class LugarCercano(LugarCercanoBase,table=True):
+    IdLugarCercano:Optional[int]=Field(default=None,primary_key=True)
 
-    # relaciones
-    paradero: Optional["Paradero"] = Relationship(back_populates="lugares_cercanos")
+    IdParadero:int=Field(foreign_key="paradero.IdParadero")
+    paradero: Optional[Paradero] = Relationship(back_populates="lugarcercano")
+
+
 
 class LugarCercanoCreate(LugarCercanoBase):
-    ParaderoId: int
+    pass
 
 class LugarCercanoPublic(LugarCercanoBase):
-    IdLugarCercano: int
-    ParaderoId: int
+    IdLugarCercano:int
+    IdParadero:int
+
 
 class LugarCercanoUpdate(SQLModel):
-    nombre: Optional[str] = None
-    tipo: Optional[str] = None
-    distancia_metros: Optional[int] = None
-    ParaderoId: Optional[int] = None
+    nombre:Optional[str]=None
+    IdParadero:Optional[int]=None
+
+
+LugarCercanoPublic.model_rebuild()

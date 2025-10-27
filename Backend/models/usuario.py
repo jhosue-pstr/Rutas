@@ -16,6 +16,8 @@ class Usuario(UsuarioBase, table=True):
     FechaRegistro: datetime.date = Field(default_factory=datetime.datetime.utcnow)
     estado: bool = True
 
+    busfavorito:Optional["BusFavorito"]= Relationship(back_populates="usuario")
+
 
 class UsuarioCreate(UsuarioBase):
     Contrasena: str

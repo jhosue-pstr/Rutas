@@ -1,68 +1,36 @@
-# from sqlmodel import SQLModel, Field, Relationship
-# from typing import Optional, List
-# import datetime
-# from sqlalchemy import Column, DateTime
-
-# class ParaderoBase(SQLModel):
-#     nombre: str
-#     latitud: float
-#     longitud: float
-
-# class Paradero(ParaderoBase, table=True):
-#     IdParadero: Optional[int] = Field(default=None, primary_key=True)
-#     FechaRegistro: datetime.datetime = Field(
-#         default_factory=datetime.datetime.utcnow,
-#         sa_column=Column(DateTime(timezone=True))
-#     )
-
-#     # relaciones
-#     lugares_cercanos: List["LugarCercano"] = Relationship(back_populates="paradero")
-#     buses: List["Bus"] = Relationship(back_populates="paradero")
-
-# class ParaderoCreate(ParaderoBase):
-#     pass
-
-# class ParaderoPublic(ParaderoBase):
-#     IdParadero: int
-#     FechaRegistro: datetime.datetime
-
-# class ParaderoUpdate(SQLModel):
-#     nombre: Optional[str] = None
-#     latitud: Optional[float] = None
-#     longitud: Optional[float] = None
-
-
-
-
-# models/paradero.py - VERSIÓN CORREGIDA
 from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional, List
-import datetime
-from sqlalchemy import Column, DateTime
+from typing import Optional , List
+from models.bus import Bus
+
 
 class ParaderoBase(SQLModel):
-    nombre: str
-    latitud: float
-    longitud: float
+    nombre:str
+    latitud:float
+    longitud:float
 
-class Paradero(ParaderoBase, table=True):
-    IdParadero: Optional[int] = Field(default=None, primary_key=True)
-    FechaRegistro: datetime.datetime = Field(
-        default_factory=datetime.datetime.utcnow,
-        sa_column=Column(DateTime(timezone=True))
-    )
 
-    # SOLO esta relación - ELIMINA completamente la de buses
-    lugares_cercanos: List["LugarCercano"] = Relationship(back_populates="paradero")
+class Paradero(ParaderoBase,table=True):
+    IdParadero:Optional[int]=Field(default= None,primary_key=True)    
+
+    IdBus :int = Field(foreign_key="bus.IdBus")
+    bus: Optional[Bus] = Relationship(back_populates="paradero")
+
+    lugarcercano: Optional["LugarCercano"] = Relationship(back_populates="paradero")
+
+
 
 class ParaderoCreate(ParaderoBase):
     pass
 
 class ParaderoPublic(ParaderoBase):
-    IdParadero: int
-    FechaRegistro: datetime.datetime
+    IdParadero:int
+    IdBus:int
 
 class ParaderoUpdate(SQLModel):
-    nombre: Optional[str] = None
-    latitud: Optional[float] = None
-    longitud: Optional[float] = None
+    nombre:Optional[str]=None
+    latitud:Optional[float]=None
+    longitud:Optional[float]=None
+
+
+
+ParaderoPublic.model_rebuild()

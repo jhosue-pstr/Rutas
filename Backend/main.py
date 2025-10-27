@@ -21,8 +21,13 @@ from routers.buses_favoritos import router as buses_favoritos_router
 from routers.lugares_favoritos import router as lugares_favoritos_router
 
 
+from routers.simulacion import router as simulacion_router
+
 
 app = FastAPI()
+
+app.include_router(simulacion_router, prefix="/api", tags=["simulacion"])
+
 
 app.include_router(auth_router, tags=["authentication"])
 app.include_router(users_router, prefix="/api", tags=["usuarios"])

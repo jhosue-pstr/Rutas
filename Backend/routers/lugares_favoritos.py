@@ -23,7 +23,6 @@ def Obtener_Lugares_Favoritos(
 def Obtener_Lugares_Favoritos_Por_Usuario(
     usuario_id: int,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return LeerLugaresFavoritosPorUsuario(usuario_id, session)
 
@@ -31,7 +30,6 @@ def Obtener_Lugares_Favoritos_Por_Usuario(
 def Agregar_Lugar_Favorito(
     lugar: LugarFavoritoCreate,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return CrearLugarFavorito(lugar, session)
 
@@ -39,7 +37,6 @@ def Agregar_Lugar_Favorito(
 def Obtener_Lugar_Favorito_Por_Id(
     id: int,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return LeerLugarFavoritoPorId(id, session)
 
@@ -48,7 +45,6 @@ def Actualizar_Lugar_Favorito(
     id: int,
     datos: LugarFavoritoUpdate,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return ActualizarLugarFavorito(id, datos, session)
 
@@ -56,6 +52,5 @@ def Actualizar_Lugar_Favorito(
 def Eliminar_Lugar_Favorito(
     id: int,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return EliminarLugarFavorito(id, session)

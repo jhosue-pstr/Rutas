@@ -23,7 +23,6 @@ def Obtener_Buses_Favoritos(
 def Obtener_Buses_Favoritos_Por_Usuario(
     usuario_id: int,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return LeerBusesFavoritosPorUsuario(usuario_id, session)
 
@@ -31,7 +30,6 @@ def Obtener_Buses_Favoritos_Por_Usuario(
 def Agregar_Bus_Favorito(
     bus_favorito: BusFavoritoCreate,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return CrearBusFavorito(bus_favorito, session)
 
@@ -39,7 +37,6 @@ def Agregar_Bus_Favorito(
 def Obtener_Bus_Favorito_Por_Id(
     id: int,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return LeerBusFavoritoPorId(id, session)
 
@@ -47,7 +44,6 @@ def Obtener_Bus_Favorito_Por_Id(
 def Eliminar_Bus_Favorito(
     id: int,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return EliminarBusFavorito(id, session)
 
@@ -56,6 +52,5 @@ def Eliminar_Bus_Favorito_Por_Usuario_Y_Bus(
     usuario_id: int,
     bus_id: int,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return EliminarBusFavoritoPorUsuarioYBuses(usuario_id, bus_id, session)

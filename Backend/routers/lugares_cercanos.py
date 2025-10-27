@@ -23,7 +23,6 @@ def Obtener_Lugares_Cercanos(
 def Agregar_Lugar_Cercano(
     lugar: LugarCercanoCreate,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return CrearLugarCercano(lugar, session)
 
@@ -46,7 +45,6 @@ def Actualizar_Lugar_Cercano(
     id: int,
     datos: LugarCercanoUpdate,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return ActualizarLugarCercano(id, datos, session)
 
@@ -54,6 +52,5 @@ def Actualizar_Lugar_Cercano(
 def Eliminar_Lugar_Cercano(
     id: int,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return EliminarLugarCercano(id, session)

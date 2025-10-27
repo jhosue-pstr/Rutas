@@ -30,7 +30,6 @@ def Obtener_Noticias_Recientes(
 def Agregar_Noticia(
     noticia: NoticiaCreate,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return CrearNoticia(noticia, session)
 
@@ -46,7 +45,6 @@ def Actualizar_Noticia(
     id: int,
     datos: NoticiaUpdate,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return ActualizarNoticia(id, datos, session)
 
@@ -54,6 +52,5 @@ def Actualizar_Noticia(
 def Eliminar_Noticia(
     id: int,
     session: Session = Depends(get_session),
-    current_user: Usuario = Depends(get_current_active_user)
 ):
     return EliminarNoticia(id, session)

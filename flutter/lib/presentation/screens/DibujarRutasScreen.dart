@@ -20,6 +20,18 @@ class _DibujarRutasScreenState extends State<DibujarRutasScreen> {
   final TextEditingController _colorCtrl = TextEditingController(
     text: '#2196F3',
   );
+  final List<String> coloresHex = [
+    '#2196F3', // Azul
+    '#F44336', // Rojo
+    '#4CAF50', // Verde
+    '#FFEB3B', // Amarillo
+    '#9C27B0', // Morado
+    '#FF9800', // Naranja
+    '#00BCD4', // Celeste
+    '#E91E63', // Rosado
+    '#795548', // Marrón
+    '#607D8B', // Gris azulado
+  ];
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   GoogleMapController? _mapController;
@@ -29,7 +41,6 @@ class _DibujarRutasScreenState extends State<DibujarRutasScreen> {
   bool _dibujando = false;
   bool _guardando = false;
 
-  // 🔹 Agregar un punto al mapa
   void _agregarPunto(LatLng punto) {
     setState(() {
       _puntosRuta.add(punto);
@@ -54,7 +65,6 @@ class _DibujarRutasScreenState extends State<DibujarRutasScreen> {
     });
   }
 
-  // 🔹 Actualizar la línea en el mapa
   void _actualizarPolyline() {
     _polylines = {
       Polyline(
@@ -66,7 +76,6 @@ class _DibujarRutasScreenState extends State<DibujarRutasScreen> {
     };
   }
 
-  // 🔹 Obtener color de la polyline
   Color _obtenerColorPolyline() {
     try {
       return Color(int.parse(_colorCtrl.text.replaceFirst('#', '0xFF')));
@@ -136,7 +145,6 @@ class _DibujarRutasScreenState extends State<DibujarRutasScreen> {
         '✅ Ruta guardada correctamente con ${_puntosRuta.length} puntos',
       );
 
-      // 🔹 Limpiar todo después de guardar
       _reiniciarDibujo();
       _nombreCtrl.clear();
       _descripcionCtrl.clear();
@@ -154,7 +162,6 @@ class _DibujarRutasScreenState extends State<DibujarRutasScreen> {
     );
   }
 
-  // 🔹 Mostrar diálogo de confirmación para reiniciar
   void _confirmarReinicio() {
     if (_puntosRuta.isEmpty) return;
 
@@ -198,7 +205,6 @@ class _DibujarRutasScreenState extends State<DibujarRutasScreen> {
       ),
       body: Column(
         children: [
-          // 🔹 Formulario superior
           Expanded(
             flex: 2,
             child: Padding(
@@ -226,13 +232,61 @@ class _DibujarRutasScreenState extends State<DibujarRutasScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           flex: 1,
-                          child: TextFormField(
-                            controller: _colorCtrl,
-                            decoration: const InputDecoration(
-                              labelText: 'Color',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.color_lens),
-                            ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _colorCtrl,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Color',
+                                    border: OutlineInputBorder(),
+                                    prefixIcon: Icon(Icons.color_lens),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              DropdownButton<String>(
+                                value: _colorCtrl.text,
+                                icon: const Icon(Icons.arrow_drop_down),
+                                items: coloresHex.map((color) {
+                                  return DropdownMenuItem(
+                                    value: color,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 20,
+                                          height: 20,
+                                          margin: const EdgeInsets.only(
+                                            right: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Color(
+                                              int.parse(
+                                                    color.substring(1, 7),
+                                                    radix: 16,
+                                                  ) +
+                                                  0xFF000000,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.grey.shade400,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(color),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (nuevoColor) {
+                                  if (nuevoColor != null) {
+                                    _colorCtrl.text = nuevoColor;
+                                  }
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       ],

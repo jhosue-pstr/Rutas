@@ -16,6 +16,8 @@ class Bus(BusBase, table=True):
 
     chofer: Optional["Chofer"] = Relationship(back_populates="buses")
     ruta: Optional["Ruta"] = Relationship(back_populates="buses")
+    favoritos: Optional["BusFavorito"] = Relationship(back_populates="bus")
+paradero: Optional["Paradero"] = Relationship(back_populates="buses")
 
 class BusCreate(BusBase):
     ChoferId: Optional[int] = None

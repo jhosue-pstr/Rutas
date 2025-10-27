@@ -30,10 +30,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      // 👇 Navegamos correctamente al HomeScreenR
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const VerRutasScreen()),
+        MaterialPageRoute(builder: (context) => const DibujarRutasScreen()),
       );
     }
   }

@@ -10,8 +10,8 @@ def CrearBusFavorito(bus_favorito: BusFavoritoCreate, session: Session) -> BusFa
     # Verificar si ya existe
     existente = session.exec(
         select(BusFavorito)
-        .where(BusFavorito.UsuarioId == bus_favorito.UsuarioId)
-        .where(BusFavorito.BusId == bus_favorito.BusId)
+        .where(BusFavorito.IdUsuario == bus_favorito.IdUsuario) 
+        .where(BusFavorito.IdBus == bus_favorito.IdBus) 
     ).first()
     
     if existente:

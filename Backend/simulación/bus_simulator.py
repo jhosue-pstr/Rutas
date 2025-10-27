@@ -65,15 +65,15 @@ class BusSimulator:
                 punto_inicial = random.choice(puntos)
                 self.buses_activos[bus.IdBus] = {
                     'bus': bus,
-                    'latitud': punto_inicial.Latitud,  # ← CORREGIDO: con mayúscula
-                    'longitud': punto_inicial.Longitud, # ← CORREGIDO: con mayúscula
+                    'latitud': punto_inicial.latitud,  # ← CORREGIDO: con mayúscula
+                    'longitud': punto_inicial.longitud, # ← CORREGIDO: con mayúscula
                     'puntos_ruta': puntos,
                     'proximo_punto': 0,
                     'velocidad': random.uniform(0.0001, 0.0003),
                     'ultima_actualizacion': datetime.now()
                 }
                 print(f"   ✅ Bus {bus.IdBus} ({bus.placa}) activo en ruta {ruta.nombre}")
-                print(f"   📍 Posición inicial: {punto_inicial.Latitud:.6f}, {punto_inicial.Longitud:.6f}")
+                print(f"   📍 Posición inicial: {punto_inicial.latitud:.6f}, {punto_inicial.longitud:.6f}")
             else:
                 print(f"   ❌ No hay puntos de ruta para bus {bus.IdBus} en ruta {bus.RutaId}")
                 
@@ -106,7 +106,7 @@ class BusSimulator:
             
             # Calcular dirección
             lat_actual, lon_actual = datos['latitud'], datos['longitud']
-            lat_destino, lon_destino = siguiente_punto.Latitud, siguiente_punto.Longitud
+            lat_destino, lon_destino = siguiente_punto.latitud, siguiente_punto.longitud
             
             # Calcular distancia
             distancia = self._calcular_distancia(lat_actual, lon_actual, lat_destino, lon_destino)

@@ -1,0 +1,211 @@
+flutter/ephemeral
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../data/models/rutas.dart';
+import '../../presentation/controllers/ruta_controller.dart';
+import '../../data/models/punto_ruta.dart';
+
+class DibujarRutasScreen extends StatefulWidget {
+  const DibujarRutasScreen({super.key});
+
+  @override
+  State<DibujarRutasScreen> createState() => _DibujarRutasScreenState();
+}
+
+class _DibujarRutasScreenState extends State<DibujarRutasScreen> {
+  final RutaController _rutaController = RutaController();
+  final TextEditingController _nombreCtrl = TextEditingController();
+  final TextEditingController _descripcionCtrl = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  GoogleMapController? _mapController;
+  Set<Marker> _markers = {};
+  Set<Polyline> _polylines = {};
+  List<LatLng> _puntosRuta = [];
+  bool _dibujando = false;
+
+  // 🔹 Agregar un punto al mapa
+  void _agregarPunto(LatLng punto) {
+    setState(() {
+      _puntosRuta.add(punto);
+      _markers.add(
+        Marker(
+          markerId: MarkerId('punto_${_puntosRuta.length}'),
+          position: punto,
+          infoWindow: InfoWindow(title: 'Punto ${_puntosRuta.length}'),
+        ),
+      );
+      _polylines = {
+        Polyline(
+          polylineId: const PolylineId('ruta_dibujada'),
+          color: Colors.blue,
+          width: 4,
+          points: _puntosRuta,
+        ),
+      };
+    });
+  }
+
+  // 🔹 Reiniciar el dibujo
+  void _reiniciarDibujo() {
+    setState(() {
+      _puntosRuta.clear();
+      _markers.clear();
+      _polylines.clear();
+    });
+  }
+
+  // 🔹 Guardar la ruta en la base de datos
+  Future<void> _guardarRuta() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_puntosRuta.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Debes dibujar una ruta en el mapa')),
+      );
+      return;
+    }
+
+    try {
+      final nuevaRuta = Ruta(
+        idRuta: 0,
+        nombre: _nombreCtrl.text,
+        fechaRegistro: DateTime.now(),
+        descripcion: _descripcionCtrl.text,
+        puntos: _puntosRuta.asMap().entries.map((entry) {
+          final index = entry.key;
+          final punto = entry.value;
+          return PuntoRuta(
+            idPunto: 0,
+            rutaId: 0, // aún no existe, el backend lo asignará
+            latitud: punto.latitude,
+            longitud: punto.longitude,
+            orden: index + 1, // orden secuencial
+          );
+        }).toList(),
+      );
+
+      await _rutaController.crearRuta(nuevaRuta);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ruta guardada correctamente')),
+      );
+
+      _reiniciarDibujo();
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al guardar la ruta: $e')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Formulario de Ruta'),
+        backgroundColor: Colors.indigo,
+      ),
+      body: Column(
+        children: [
+          // 🔹 Formulario superior
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: _nombreCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Nombre de la ruta',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Ingrese el nombre'
+                        : null,
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _descripcionCtrl,
+                    maxLines: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'Descripción',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // 🔹 Mapa interactivo
+          Expanded(
+            child: Stack(
+              children: [
+                GoogleMap(
+                  initialCameraPosition: const CameraPosition(
+                    target: LatLng(-15.47353, -70.12007),
+                    zoom: 13,
+                  ),
+                  onMapCreated: (controller) => _mapController = controller,
+                  markers: _markers,
+                  polylines: _polylines,
+                  onTap: (pos) {
+                    if (_dibujando) _agregarPunto(pos);
+                  },
+                ),
+                Positioned(
+                  bottom: 15,
+                  left: 10,
+                  right: 10,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      FloatingActionButton.extended(
+                        heroTag: "btn_dibujar",
+                        onPressed: () {
+                          setState(() => _dibujando = !_dibujando);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                _dibujando
+                                    ? 'Toca el mapa para agregar puntos'
+                                    : 'Dibujo pausado',
+                              ),
+                            ),
+                          );
+                        },
+                        label: Text(
+                          _dibujando ? 'Pausar dibujo' : 'Comenzar dibujo',
+                        ),
+                        icon: Icon(
+                          _dibujando ? Icons.pause : Icons.edit_location_alt,
+                        ),
+                        backgroundColor: _dibujando
+                            ? Colors.orange
+                            : Colors.indigo,
+                      ),
+                      FloatingActionButton.extended(
+                        heroTag: "btn_guardar",
+                        onPressed: _guardarRuta,
+                        label: const Text('Guardar'),
+                        icon: const Icon(Icons.save),
+                        backgroundColor: Colors.green,
+                      ),
+                      FloatingActionButton(
+                        heroTag: "btn_reiniciar",
+                        onPressed: _reiniciarDibujo,
+                        backgroundColor: Colors.red,
+                        child: const Icon(Icons.delete),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

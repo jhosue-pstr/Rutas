@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet"/>
+  <style>
+    :root {
+      /* Colores personalizados */
+      --chat--color--primary: #0076a3; /* Azul elegante */
+      --chat--color--primary-shade-50: #005f85;
+      --chat--color--primary--shade-100: #004466;
+      --chat--color--secondary: #f1a738; /* Amarillo cálido */
+      --chat--color-secondary-shade-50: #d88b2e;
+      --chat--color-white: #ffffff;
+      --chat--color-light: #f0f4f7; /* Fondo claro suave */
+      --chat--color-light-shade-50: #e6e9f1;
+      --chat--color-light-shade-100: #c2c5cc;
+      --chat--color-medium: #d2d4d9;
+      --chat--color-dark: #333333; /* Tono oscuro elegante */
+      --chat--color-disabled: #777980;
+      --chat--color-typing: #404040;
+
+      /* Bordes y sombras */
+      --chat--border-radius: 12px; /* Bordes más redondeados */
+      --chat--shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+      --chat--spacing: 1rem;
+      --chat--transition-duration: 0.25s;
+
+      /* Dimensiones de la ventana de chat */
+      --chat--window--width: 350px;
+      --chat--window--height: 650px;
+
+      /* Estilos del encabezado */
+      --chat--header--background: #0076a3; /* Azul elegante */
+      --chat--header--color: var(--chat--color-white);
+      --chat--header--padding: 0.8rem;
+      --chat--header--border-radius: 12px 12px 0 0;
+      --chat--header--shadow: var(--chat--shadow);
+      --chat--heading--font-size: 1.8em; /* Tamaño de fuente del título */
+      --chat--subtitle--font-size: 1.2em; /* Tamaño de fuente del subtítulo */
+      --chat--subtitle--line-height: 1.5;
+
+      /* Estilos de los mensajes */
+      --chat--message--font-size: 1rem;
+      --chat--message--padding: var(--chat--spacing);
+      --chat--message--border-radius: 12px;
+      --chat--message-line-height: 1.6;
+
+      /* Fondo de los mensajes de bot y usuario (burbuja) */
+      --chat--message--bot--background: #0076a3; /* Fondo del mensaje de bot al color solicitado */
+      --chat--message--bot--color: var(--chat--color-white); /* Color del texto del bot */
+      --chat--message--bot--border: none; /* Eliminar el borde para un diseño más limpio */
+      
+      --chat--message--user--background: #236486 /* Fondo del mensaje de usuario al color solicitado */
+      --chat--message--user--color: var(--chat--color-white); /* Color del texto del usuario */
+      --chat--message--user--border: none; /* Eliminar el borde para un diseño más limpio */
+      
+      --chat--message--pre--background: rgba(0, 0, 0, 0.05);
+
+      /* Estilos para el área de entrada */
+      --chat--textarea--height: 55px;
+      --chat--textarea--border-radius: 12px;
+      --chat--textarea--background: #f9f9f9; /* Fondo del área de entrada */
+      --chat--textarea--padding: 0.8rem;
+
+      /* Estilos para el botón de apertura */
+      --chat--toggle--background: var(--chat--color--primary);
+      --chat--toggle--hover--background: var(--chat--color--primary-shade-50);
+      --chat--toggle--active--background: var(--chat--color--primary--shade-100);
+      --chat--toggle--color: var(--chat--color-white);
+      --chat--toggle--size: 64px;
+      --chat--toggle--border-radius: 50%;
+    }
+
+    /* Hacer que la ventana de chat ocupe el 100% del espacio disponible */
+    html, body, #n8n-chat {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: var(--chat--color-light-shade-50);
+    }
+
+    /* Mejora visual del mensaje */
+    .n8n-chat-message {
+      border-radius: var(--chat--message--border-radius);
+      box-shadow: var(--chat--shadow);
+    }
+
+    /* Asegurarse de que los mensajes de chat estén dentro de su contenedor */
+    .n8n-chat-messages {
+      padding: var(--chat--spacing);
+    }
+  </style>
+  <title>n8n Chat Customizado</title>
+</head>
+<body>
+  <script type="module">
+    import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+    createChat({
+      webhookUrl: 'https://claudie-unpresumptive-gaugeably.ngrok-free.dev/webhook/108bc582-d48d-4a19-b2d4-90d0e07689ea/chat',
+      webhookConfig: {
+        method: 'POST',
+        headers: {}
+      },
+      target: '#n8n-chat',
+      mode: 'window',
+      chatInputKey: 'chatInput',
+      chatSessionKey: 'sessionId',
+      loadPreviousSession: true,
+      metadata: {},
+      showWelcomeScreen: false,
+      defaultLanguage: 'es',  // Cambié a español
+      initialMessages: [
+        'Soy una IA lista para darte la información que necesitas sobre la ciudad de Juliaca'
+      ],
+      i18n: {
+        es: {
+          title: '¡Hola soy Alfred! 🤖',
+          subtitle: "Consulta con el chat. Estamos aquí para ayudarte en todo momento😁",
+          footer: '',
+          getStarted: 'Nueva conversación',
+          inputPlaceholder: 'Escribe tu pregunta..',
+        },
+      },
+      enableStreaming: false,
+    });
+  </script>
+</body>
+</html>

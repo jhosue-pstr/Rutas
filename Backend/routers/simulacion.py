@@ -9,8 +9,7 @@ import threading
 import time
 from sqlalchemy import text
 
-router = APIRouter(prefix="/simulacion/", tags=["simulacion"])
-
+router = APIRouter(prefix="/simulacion", tags=["simulacion"])
 bus_simulator = None
 simulation_task = None
 

@@ -34,6 +34,7 @@ class _RutasScreenState extends State<RutasScreen> {
   Map<String, UbicacionBus> _ubicacionesBuses = {};
   StreamSubscription? _ubicacionesSubscription;
   bool _mostrarTodasLasRutas = false;
+  bool _rutasDibujadas = false;
 
   // Colores de la app
   final Color _azulPrincipal = const Color(0xFF3F51B5);
@@ -73,10 +74,7 @@ class _RutasScreenState extends State<RutasScreen> {
 
       _ubicacionesSubscription = _simulacionController.ubicacionesStream.listen(
         (ubicaciones) {
-          setState(() {
-            _ubicacionesBuses = ubicaciones;
-            _actualizarMapa();
-          });
+          _actualizarBuses(ubicaciones);
         },
       );
     } catch (e) {
@@ -84,39 +82,49 @@ class _RutasScreenState extends State<RutasScreen> {
     }
   }
 
+  void _actualizarBuses(Map<String, UbicacionBus> nuevasUbicaciones) {
+    setState(() {
+      _ubicacionesBuses = nuevasUbicaciones;
+      _agregarBusesTiempoReal();
+    });
+  }
+
   void _seleccionarRuta(Ruta ruta) {
     setState(() {
       _rutaSeleccionada = ruta;
       _mostrarTodasLasRutas = false;
+      _rutasDibujadas = false;
       _actualizarMapa();
     });
   }
 
-  // 🔥 MÉTODO CORREGIDO - CAMBIAR MODO DE VISUALIZACIÓN
   void _cambiarModoVisualizacion() {
     setState(() {
       _mostrarTodasLasRutas = !_mostrarTodasLasRutas;
+      _rutasDibujadas = false;
       _actualizarMapa();
     });
   }
 
   Future<void> _actualizarMapa() async {
-    _markers.clear();
-    _polylines.clear();
+    if (!_rutasDibujadas) {
+      _markers.clear();
+      _polylines.clear();
 
-    if (_mostrarTodasLasRutas) {
-      // Mostrar todas las rutas
-      for (final ruta in _rutas) {
-        await _agregarRutaAlMapa(ruta);
+      if (_mostrarTodasLasRutas) {
+        // 🔥 CORREGIDO: Mostrar todas las rutas
+        for (final ruta in _rutas) {
+          await _agregarRutaAlMapa(ruta);
+        }
+      } else if (_rutaSeleccionada != null) {
+        // 🔥 CORREGIDO: Mostrar SOLO la ruta seleccionada
+        await _agregarRutaAlMapa(_rutaSeleccionada!);
       }
-    } else if (_rutaSeleccionada != null) {
-      // Mostrar solo la ruta seleccionada
-      await _agregarRutaAlMapa(_rutaSeleccionada!);
+
+      _rutasDibujadas = true;
     }
 
-    // Agregar buses en tiempo real
     _agregarBusesTiempoReal();
-
     setState(() {});
   }
 
@@ -127,10 +135,7 @@ class _RutasScreenState extends State<RutasScreen> {
 
     if (puntosDeRuta.length < 2) return;
 
-    // Crear marcadores para puntos importantes
     _crearMarcadoresImportantes(puntosDeRuta, ruta);
-
-    // Crear polyline de la ruta
     await _crearRutaConDirectionsAPI(puntosDeRuta, ruta);
   }
 
@@ -265,6 +270,8 @@ class _RutasScreenState extends State<RutasScreen> {
   }
 
   void _agregarBusesTiempoReal() {
+    _markers.removeWhere((marker) => marker.markerId.value.startsWith('bus_'));
+
     _ubicacionesBuses.forEach((busId, ubicacion) {
       final ruta = _rutas.firstWhere(
         (r) => r.IdRuta == ubicacion.rutaId,
@@ -376,7 +383,6 @@ class _RutasScreenState extends State<RutasScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
               Row(
                 children: [
                   Container(
@@ -403,7 +409,6 @@ class _RutasScreenState extends State<RutasScreen> {
 
               const SizedBox(height: 16),
 
-              // Información de la ruta
               if (ruta.descripcion != null)
                 Text(
                   ruta.descripcion!,
@@ -412,7 +417,6 @@ class _RutasScreenState extends State<RutasScreen> {
 
               const SizedBox(height: 12),
 
-              // Estadísticas
               Row(
                 children: [
                   _buildEstadistica(
@@ -433,7 +437,6 @@ class _RutasScreenState extends State<RutasScreen> {
 
               const SizedBox(height: 16),
 
-              // Puntos importantes
               Text(
                 'Puntos Importantes:',
                 style: TextStyle(
@@ -498,7 +501,6 @@ class _RutasScreenState extends State<RutasScreen> {
 
               const SizedBox(height: 16),
 
-              // Botón cerrar
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -584,12 +586,11 @@ class _RutasScreenState extends State<RutasScreen> {
         title: const Text('Rutas de Buses'),
         automaticallyImplyLeading: true,
         actions: [
-          // 🔥 BOTÓN CORREGIDO - CAMBIAR MODO DE VISUALIZACIÓN
           IconButton(
             icon: Icon(
               _mostrarTodasLasRutas ? Icons.visibility_off : Icons.visibility,
             ),
-            onPressed: _cambiarModoVisualizacion, // 🔥 MÉTODO CORREGIDO
+            onPressed: _cambiarModoVisualizacion,
             tooltip: _mostrarTodasLasRutas
                 ? 'Mostrar una ruta'
                 : 'Ver todas las rutas',
@@ -602,14 +603,12 @@ class _RutasScreenState extends State<RutasScreen> {
         ],
       ),
       body: _cargando
-          ? _buildCargando()
+          ? _buildPantallaCarga() // 🔥 PANTALLA DE CARGA MEJORADA
           : Column(
               children: [
-                // Selector de rutas
                 if (_rutas.isNotEmpty && !_mostrarTodasLasRutas)
                   _buildSelectorRutas(),
 
-                // Mapa
                 Expanded(
                   child: Stack(
                     children: [
@@ -630,7 +629,6 @@ class _RutasScreenState extends State<RutasScreen> {
                         myLocationButtonEnabled: false,
                       ),
 
-                      // Información de estado
                       if (_rutaSeleccionada != null && !_mostrarTodasLasRutas)
                         Positioned(
                           top: 16,
@@ -639,7 +637,6 @@ class _RutasScreenState extends State<RutasScreen> {
                           child: _buildTarjetaInfoRuta(),
                         ),
 
-                      // Botón de ubicación
                       Positioned(
                         bottom: 100,
                         right: 16,
@@ -675,25 +672,107 @@ class _RutasScreenState extends State<RutasScreen> {
     );
   }
 
-  Widget _buildCargando() {
-    return Center(
+  // 🔥 PANTALLA DE CARGA MEJORADA Y ELEGANTE
+  Widget _buildPantallaCarga() {
+    return Container(
+      color: Colors.white,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(_azulPrincipal),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Cargando rutas...',
-            style: TextStyle(
-              fontSize: 16,
-              color: _grisOscuro,
-              fontWeight: FontWeight.w500,
-            ),
+          // Animación de carga personalizada
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              // Círculo de fondo animado
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: _azulPrincipal.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+              ),
+
+              // Ícono animado
+              Column(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 1000),
+                    curve: Curves.easeInOut,
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: _azulPrincipal,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: _azulPrincipal.withOpacity(0.3),
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.directions_bus,
+                      color: Colors.white,
+                      size: 40,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Texto de carga con animación de puntos
+                  _buildTextoAnimado(),
+
+                  const SizedBox(height: 30),
+
+                  // Barra de progreso
+                  SizedBox(
+                    width: 200,
+                    child: LinearProgressIndicator(
+                      backgroundColor: _grisNeutro,
+                      valueColor: AlwaysStoppedAnimation<Color>(_azulPrincipal),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Texto informativo
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Text(
+                      'Cargando rutas y ubicaciones en tiempo real...',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: _grisOscuro.withOpacity(0.7),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
+    );
+  }
+
+  // 🔥 TEXTO CON ANIMACIÓN DE PUNTOS
+  Widget _buildTextoAnimado() {
+    return TweenAnimationBuilder<String>(
+      tween: Tween<String>(begin: 'Cargando rutas', end: 'Cargando rutas...'),
+      duration: const Duration(milliseconds: 1500),
+      builder: (context, value, child) {
+        return Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: _grisOscuro,
+          ),
+        );
+      },
     );
   }
 

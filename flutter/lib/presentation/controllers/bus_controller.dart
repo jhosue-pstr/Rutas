@@ -17,7 +17,6 @@ class BusControllerMejorado {
   final PuntoRutaController _puntoRutaController = PuntoRutaController();
   List<PuntoRuta> _puntosRuta = [];
 
-  // 🔥 MÉTODO PRINCIPAL - CALCULAR MEJOR RUTA
   Future<ResultadoRuta> calcularMejorRuta(
     LatLng origen,
     LatLng destino, {
@@ -32,7 +31,6 @@ class BusControllerMejorado {
     final todasLasRutas = await _rutaController.obtenerRutas();
     final rutasRecomendadas = <RutaCompleta>[];
 
-    // 🔥 1. BUSCAR RUTAS DIRECTAS
     final rutasDirectas = await _buscarRutasDirectas(
       origen,
       destino,
@@ -45,7 +43,6 @@ class BusControllerMejorado {
       rutasRecomendadas.addAll(rutasDirectas);
     }
 
-    // 🔥 2. BUSCAR RUTAS CON TRANSBORDO (si no hay directas)
     if (rutasDirectas.isEmpty) {
       print('🔍 Buscando rutas con transbordo...');
       final rutasConTransbordo = await _buscarRutasConTransbordo(
@@ -63,11 +60,10 @@ class BusControllerMejorado {
       }
     }
 
-    // 🔥 3. ORDENAR POR TIEMPO TOTAL
     rutasRecomendadas.sort((a, b) => a.tiempoTotal.compareTo(b.tiempoTotal));
 
     return ResultadoRuta(
-      rutasRecomendadas: rutasRecomendadas.take(3).toList(), // Top 3
+      rutasRecomendadas: rutasRecomendadas.take(3).toList(),
       hayRutasDirectas: rutasDirectas.isNotEmpty,
       mensaje: _generarMensajeResultado(rutasRecomendadas),
       origen: origen,
@@ -91,7 +87,6 @@ class BusControllerMejorado {
 
       if (puntosRuta.length < 2) continue;
 
-      // Verificar si la ruta pasa cerca del ORIGEN y DESTINO
       final puntoCercanoOrigen = _encontrarPuntoMasCercano(origen, puntosRuta);
       final distanciaOrigen = _calcularDistanciaKm(
         origen.latitude,
@@ -111,7 +106,6 @@ class BusControllerMejorado {
         puntoCercanoDestino.longitud,
       );
 
-      // Verificar dirección correcta (origen antes que destino en la ruta)
       final ordenCorrecto = _verificarOrdenRuta(
         puntosRuta,
         puntoCercanoOrigen,
@@ -135,7 +129,6 @@ class BusControllerMejorado {
         );
 
         final segmentos = [
-          // Caminar hasta la parada
           SegmentoRuta(
             puntoInicio: origen,
             puntoFin: LatLng(
@@ -148,7 +141,6 @@ class BusControllerMejorado {
             instruccion:
                 'Camina ${distanciaOrigen.toStringAsFixed(1)} km hasta la parada',
           ),
-          // Tomar el bus
           SegmentoRuta(
             ruta: ruta,
             puntoInicio: LatLng(
@@ -167,7 +159,6 @@ class BusControllerMejorado {
             tipo: 'BUS',
             instruccion: 'Toma el bus ${ruta.nombre}',
           ),
-          // Caminar hasta el destino
           SegmentoRuta(
             puntoInicio: LatLng(
               puntoCercanoDestino.latitud,
@@ -208,7 +199,6 @@ class BusControllerMejorado {
     return rutasDirectas;
   }
 
-  // 🔥 BUSCAR RUTAS CON TRANSBORDO - CORREGIDO
   Future<List<RutaCompleta>> _buscarRutasConTransbordo(
     LatLng origen,
     LatLng destino,
@@ -259,9 +249,6 @@ class BusControllerMejorado {
     return rutasConTransbordo;
   }
 
-  // Buscar rutas cerca del ORIGEN
-
-  // 🔥 CREAR RUTA COMPLETA CON TRANSBORDO
   Future<RutaCompleta> _crearRutaConTransbordo(
     LatLng origen,
     LatLng destino,
@@ -276,7 +263,6 @@ class BusControllerMejorado {
         .where((p) => p.RutaId == rutaDestino.IdRuta)
         .toList();
 
-    // Encontrar puntos más cercanos
     final puntoOrigenCercano = _encontrarPuntoMasCercano(
       origen,
       puntosRutaOrigen,
@@ -294,7 +280,6 @@ class BusControllerMejorado {
       puntosRutaDestino,
     );
 
-    // Calcular distancias
     final distanciaOrigen = _calcularDistanciaKm(
       origen.latitude,
       origen.longitude,
@@ -316,7 +301,6 @@ class BusControllerMejorado {
       destino.longitude,
     );
 
-    // Calcular tiempos
     final tiempoCaminandoOrigen = _calcularTiempoCaminando(
       distanciaOrigen * 1000,
     );
@@ -338,7 +322,6 @@ class BusControllerMejorado {
     );
 
     final segmentos = [
-      // Caminar hasta primera parada
       SegmentoRuta(
         puntoInicio: origen,
         puntoFin: LatLng(
@@ -351,7 +334,6 @@ class BusControllerMejorado {
         instruccion:
             'Camina ${distanciaOrigen.toStringAsFixed(1)} km hasta la parada',
       ),
-      // Tomar primer bus
       SegmentoRuta(
         ruta: rutaOrigen,
         puntoInicio: LatLng(
@@ -386,7 +368,6 @@ class BusControllerMejorado {
         instruccion:
             'Baja y camina ${distanciaTransbordo.toStringAsFixed(1)} km hasta la siguiente parada',
       ),
-      // Tomar segundo bus
       SegmentoRuta(
         ruta: rutaDestino,
         puntoInicio: LatLng(
@@ -405,7 +386,6 @@ class BusControllerMejorado {
         tipo: 'BUS',
         instruccion: 'Toma el bus ${rutaDestino.nombre}',
       ),
-      // Caminar hasta destino final
       SegmentoRuta(
         puntoInicio: LatLng(
           puntoDestinoCercano.latitud,
@@ -474,7 +454,6 @@ class BusControllerMejorado {
           puntoDestino.longitud,
         );
 
-        // Buscar puntos cercanos entre rutas (máximo 500m caminando)
         if (distancia <= 0.5 && distancia < mejorDistancia) {
           mejorDistancia = distancia;
           final tiempoCaminando = _calcularTiempoCaminando(distancia * 1000);
@@ -494,7 +473,6 @@ class BusControllerMejorado {
     return mejorTransbordo;
   }
 
-  // 🔥 MÉTODOS AUXILIARES (del controlador anterior)
   Future<List<RutaCercanaInfo>> _buscarRutasCercanas(
     LatLng punto,
     List<Ruta> todasLasRutas,
@@ -616,12 +594,12 @@ class BusControllerMejorado {
   double _toRadians(double degrees) => degrees * pi / 180;
 
   int _calcularTiempoCaminando(double distanciaMetros) {
-    return (distanciaMetros / 80).round(); // 80m/min ≈ 4.8km/h
+    return (distanciaMetros / 80).round();
   }
 
   int _estimarTiempoBus(Ruta ruta, PuntoRuta inicio, PuntoRuta fin) {
     final distancia = _calcularDistanciaEntrePuntos(inicio, fin);
-    return (distancia / 20 * 60 + distancia * 0.5).round(); // 20km/h + paradas
+    return (distancia / 20 * 60 + distancia * 0.5).round();
   }
 
   Future<void> _cargarPuntosRuta() async {
@@ -641,7 +619,6 @@ class BusControllerMejorado {
   }
 }
 
-// 🔥 MODELOS TEMPORALES (para compatibilidad)
 class RutaCercanaInfo {
   final Ruta ruta;
   final LatLng puntoCercano;
@@ -654,7 +631,6 @@ class RutaCercanaInfo {
   });
 }
 
-// 🔥 MÉTODO PARA CREAR RUTA CON TRANSBORDO (completar)
 Future<RutaCompleta> _crearRutaConTransbordo(
   LatLng origen,
   LatLng destino,
@@ -662,8 +638,6 @@ Future<RutaCompleta> _crearRutaConTransbordo(
   Ruta rutaDestino,
   PuntoTransbordo transbordo,
 ) async {
-  // Implementar lógica para crear ruta con transbordo
-  // Similar a _buscarRutasDirectas pero con dos buses
   return RutaCompleta(
     segmentos: [],
     tiempoTotal: 0,

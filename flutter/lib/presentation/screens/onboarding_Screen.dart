@@ -75,7 +75,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _skipToEnd() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => HomeScreen()),
+      MaterialPageRoute(builder: (context) => N8nChatScreen()),
     );
   }
 

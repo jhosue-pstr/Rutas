@@ -22,7 +22,7 @@ class _VerRutasScreenState extends State<VerRutasScreen> {
   final PuntoRutaController _puntoRutaController = PuntoRutaController();
   final SimulacionController _simulacionController = SimulacionController();
 
-  final String apiKey = "AIzaSyBu-nZsShTYeztqo_so258P725jgZB-B5M"; // Tu API Key
+  final String apiKey = "AIzaSyBu-nZsShTYeztqo_so258P725jgZB-B5M";
 
   List<Ruta> _rutas = [];
   List<PuntoRuta> _puntosRuta = [];

@@ -14,12 +14,8 @@ class SimulacionController {
   Timer? _pingTimer;
   bool _conectado = false;
 
-  // ========== STREAMS PÚBLICOS ==========
-
   Stream<Map<String, UbicacionBus>> get ubicacionesStream =>
       _ubicacionesController.stream;
-
-  // ========== GESTIÓN DE CONEXIÓN ==========
 
   Future<void> conectarWebSocket() async {
     try {
@@ -28,14 +24,12 @@ class SimulacionController {
       _channel = _simulacionService.conectarWebSocket();
       _conectado = true;
 
-      // Escuchar mensajes del WebSocket
       _channel!.stream.listen(
         _manejarMensajeWebSocket,
         onError: _manejarErrorWebSocket,
         onDone: _manejarConexionCerrada,
       );
 
-      // Enviar ping cada 30 segundos para mantener conexión
       _pingTimer = Timer.periodic(Duration(seconds: 30), (timer) {
         if (_conectado) {
           _simulacionService.enviarPing(_channel!);
@@ -56,8 +50,6 @@ class SimulacionController {
     _conectado = false;
     print('🔌 WebSocket desconectado');
   }
-
-  // ========== MANEJO DE MENSAJES ==========
 
   void _manejarMensajeWebSocket(dynamic mensaje) {
     try {
@@ -87,7 +79,6 @@ class SimulacionController {
   void _manejarErrorWebSocket(error) {
     print('❌ Error en WebSocket: $error');
     _conectado = false;
-    // Intentar reconectar después de 5 segundos
     Timer(Duration(seconds: 5), () {
       if (!_conectado) {
         conectarWebSocket();
@@ -105,8 +96,6 @@ class SimulacionController {
       }
     });
   }
-
-  // ========== MÉTODOS HTTP ==========
 
   Future<Map<String, UbicacionBus>> obtenerUbicacionesActuales() async {
     try {
@@ -141,15 +130,11 @@ class SimulacionController {
     }
   }
 
-  // ========== LIMPIEZA ==========
-
   void dispose() {
     desconectarWebSocket();
     _ubicacionesController.close();
     _pingTimer?.cancel();
   }
-
-  // ========== ESTADO ==========
 
   bool get estaConectado => _conectado;
 }

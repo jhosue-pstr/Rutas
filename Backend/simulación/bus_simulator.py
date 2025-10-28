@@ -72,7 +72,7 @@ class BusSimulator:
                     'velocidad': random.uniform(0.0002, 0.0005),
                                         
 
-                    'sentido': 1,  # 1 = ida, -1 = vuelta
+                    'sentido': 1, 
                     'ultima_actualizacion': datetime.now(),
                     'en_paradero': False,
                     'tiempo_paradero': 0

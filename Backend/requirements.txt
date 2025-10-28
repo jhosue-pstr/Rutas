@@ -8,3 +8,4 @@ cryptography==46.0.1
 python-multipart==0.0.3
 PyJWT == 2.10.0
 passlib == 1.7.4
+websockets==12.0

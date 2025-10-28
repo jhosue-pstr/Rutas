@@ -471,7 +471,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // ✅ NUEVO: MOSTRAR RESULTADOS EN MODAL
   void _mostrarResultadosRutas(dynamic resultado) {
     showModalBottomSheet(
       context: context,

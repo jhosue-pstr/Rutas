@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rutasfrontend/presentation/screens/rutas_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   final String currentRoute;
@@ -121,13 +122,23 @@ class AppDrawer extends StatelessWidget {
                       color: const Color(0xFF8BC34A), // Verde Brillante
                     ),
 
+                    // 🔥 NUEVOS ITEMS DE FAVORITOS (REEMPLAZAN "Dibujar Rutas")
                     _buildDrawerItem(
                       context: context,
-                      icon: Icons.edit_road_rounded,
-                      title: 'Dibujar Rutas',
-                      route: '/dibujar-rutas',
-                      isSelected: currentRoute == '/dibujar-rutas',
-                      color: const Color(0xFFFF9800), // Naranja Dinámico
+                      icon: Icons.favorite_border,
+                      title: 'Añadir Lugar Favorito',
+                      route: '/favoritos-lugar',
+                      isSelected: currentRoute == '/favoritos-lugar',
+                      color: const Color(0xFFE91E63), // Rosa para favoritos
+                    ),
+
+                    _buildDrawerItem(
+                      context: context,
+                      icon: Icons.directions_bus_outlined,
+                      title: 'Añadir Bus Favorito',
+                      route: '/favoritos-bus',
+                      isSelected: currentRoute == '/favoritos-bus',
+                      color: const Color(0xFF9C27B0), // Púrpura para buses
                     ),
 
                     // 🔥 SECCIÓN PARA USUARIOS REGISTRADOS
@@ -328,41 +339,42 @@ class AppDrawer extends StatelessWidget {
                 size: 20,
               ),
         onTap: () {
-          _mostrarMensajeDesarrollo(
+          Navigator.pushReplacement(
             context,
-            title,
-          ); // 🔥 AHORA CONTEXT ESTÁ DEFINIDO
+            MaterialPageRoute(builder: (context) => const RutasScreen()),
+          );
         },
+
         contentPadding: const EdgeInsets.symmetric(horizontal: 8),
       ),
     );
   }
 
   // 🔥 MOSTRAR MENSAJE DE DESARROLLO
-  void _mostrarMensajeDesarrollo(BuildContext context, String feature) {
-    Navigator.pop(context); // Cerrar drawer
+  // void _mostrarMensajeDesarrollo(BuildContext context, String feature) {
+  //   Navigator.pop(context); // Cerrar drawer
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.code_rounded, color: Colors.white),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                '$feature - En desarrollo',
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: const Color(0xFF3F51B5), // Azul Principal
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Row(
+  //         children: [
+  //           Icon(Icons.code_rounded, color: Colors.white),
+  //           const SizedBox(width: 10),
+  //           Expanded(
+  //             child: Text(
+  //               '$feature - En desarrollo',
+  //               style: TextStyle(fontWeight: FontWeight.w500),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //       backgroundColor: const Color(0xFF3F51B5), // Azul Principal
+  //       behavior: SnackBarBehavior.floating,
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  //       duration: const Duration(seconds: 2),
+  //     ),
+  //   );
+  // }
 
   // 🔥 CONFIRMAR CERRAR SESIÓN
   void _confirmarCerrarSesion(BuildContext context, bool isGuest) {

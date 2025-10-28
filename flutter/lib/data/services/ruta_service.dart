@@ -8,9 +8,7 @@ class RutaService {
 
   Future<List<Ruta>> getRutas() async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/$endpoint/'), // Agregado / y /api/
-      );
+      final response = await http.get(Uri.parse('$baseUrl/api/$endpoint/'));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -27,9 +25,7 @@ class RutaService {
 
   Future<Ruta> getRutaById(int id) async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/$endpoint/$id'), // Agregado /api/
-      );
+      final response = await http.get(Uri.parse('$baseUrl/api/$endpoint/$id'));
 
       if (response.statusCode == 200) {
         return Ruta.fromJson(json.decode(response.body));
@@ -44,7 +40,7 @@ class RutaService {
   Future<Ruta> createRuta(Ruta ruta) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/api/$endpoint/'), // Corregido URL
+        Uri.parse('$baseUrl/api/$endpoint/'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(ruta.toJson()),
       );
@@ -64,7 +60,7 @@ class RutaService {
   Future<Ruta> updateRuta(int id, Ruta ruta) async {
     try {
       final response = await http.put(
-        Uri.parse('$baseUrl/api/$endpoint/$id'), // Agregado /api/
+        Uri.parse('$baseUrl/api/$endpoint/$id'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(ruta.toJson()),
       );
@@ -84,7 +80,7 @@ class RutaService {
   Future<void> deleteRuta(int id) async {
     try {
       final response = await http.delete(
-        Uri.parse('$baseUrl/api/$endpoint/$id'), // Agregado /api/
+        Uri.parse('$baseUrl/api/$endpoint/$id'),
       );
 
       if (response.statusCode != 204 && response.statusCode != 200) {

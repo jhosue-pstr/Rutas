@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rutasfrontend/presentation/screens/DibujarRutasScreen.dart';
+import 'package:rutasfrontend/presentation/screens/N8nChatScreen.dart';
 import 'package:rutasfrontend/presentation/screens/home_screen.dart';
 import 'package:rutasfrontend/presentation/screens/ver_rutas_screen.dart';
 
@@ -66,7 +67,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (context) => const VerRutasScreen()),
       );
     }
   }
@@ -74,7 +75,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _skipToEnd() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      MaterialPageRoute(builder: (context) => N8nChatScreen()),
     );
   }
 

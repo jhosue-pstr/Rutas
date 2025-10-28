@@ -3,6 +3,8 @@ from typing import Optional, List
 import datetime
 from sqlalchemy import Column, DateTime
 
+from models.bus import Bus
+
 class ChoferBase(SQLModel):
     nombre: str
     apellido: Optional[str] = None
@@ -22,8 +24,11 @@ class Chofer(ChoferBase, table=True):
 
     buses: List["Bus"] = Relationship(back_populates="chofer")
 
-class ChoferCreate(ChoferBase):
-    pass
+class ChoferCreate(SQLModel):
+    nombre: str
+    apellido: Optional[str] = None
+    dni: Optional[str] = None
+    telefono: Optional[str] = None
 
 class ChoferPublic(ChoferBase):
     IdChofer: int
@@ -35,6 +40,3 @@ class ChoferUpdate(SQLModel):
     apellido: Optional[str] = None
     dni: Optional[str] = None
     telefono: Optional[str] = None
-    foto_url: Optional[str] = None
-    qr_pago_url: Optional[str] = None
-    licencia_conducir: Optional[str] = None

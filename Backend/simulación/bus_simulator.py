@@ -214,27 +214,27 @@ class BusSimulator:
                 print(f"   ❌ Ruta {bus.RutaId} no encontrada para bus {bus.IdBus}")
                 return
                 
-            # Obtener puntos ORDENADOS por el campo 'orden'
             puntos = self.session.exec(
                 select(PuntoRuta)
                 .where(PuntoRuta.RutaId == bus.RutaId)
-                .order_by(PuntoRuta.orden)  # ← ORDENAR POR EL CAMPO 'orden'
+                .order_by(PuntoRuta.orden) 
             ).all()
             
             print(f"   📍 Puntos de ruta encontrados: {len(puntos)}")
             
             if puntos:
-                # CORREGIDO: Usar el PRIMER punto en lugar de uno aleatorio
                 punto_inicial = puntos[0]
                 
                 self.buses_activos[bus.IdBus] = {
                     'bus': bus,
                     'latitud': punto_inicial.latitud,
                     'longitud': punto_inicial.longitud,
-                    'puntos_ruta': puntos,  # Lista ya ordenada
-                    'punto_actual_idx': 0,  # Empezar en el primer punto
-                    'proximo_punto_idx': 1,  # Siguiente punto es el segundo
-                    'velocidad': random.uniform(0.00001, 0.00003),  # Más lento
+                    'puntos_ruta': puntos, 
+                    'punto_actual_idx': 0, 
+                    'proximo_punto_idx': 1,  
+                    'velocidad': random.uniform(0.00001, 0.00003), 
+                                        # 'velocidad': random.uniform(0.0001, 0.0003),
+
                     'sentido': 1,  # 1 = ida, -1 = vuelta
                     'ultima_actualizacion': datetime.now(),
                     'en_paradero': False,
@@ -263,9 +263,8 @@ class BusSimulator:
         """Mueve un bus a lo largo de su ruta en ORDEN"""
         try:
             if datos['en_paradero']:
-                # El bus está detenido en un paradero
-                datos['tiempo_paradero'] += 3  # 3 segundos más de espera
-                if datos['tiempo_paradero'] >= 10:  # 10 segundos en paradero
+                datos['tiempo_paradero'] += 3 
+                if datos['tiempo_paradero'] >= 10:  
                     datos['en_paradero'] = False
                     datos['tiempo_paradero'] = 0
                     print(f"   🚌 Bus {bus_id} saliendo del paradero")
@@ -275,38 +274,31 @@ class BusSimulator:
             if not puntos or datos['proximo_punto_idx'] >= len(puntos):
                 return
             
-            # Obtener punto actual y siguiente en ORDEN
             punto_actual = puntos[datos['punto_actual_idx']]
             siguiente_punto = puntos[datos['proximo_punto_idx']]
             
-            # Calcular dirección
             lat_actual, lon_actual = datos['latitud'], datos['longitud']
             lat_destino, lon_destino = siguiente_punto.latitud, siguiente_punto.longitud
             
-            # Calcular distancia
             distancia = self._calcular_distancia(lat_actual, lon_actual, lat_destino, lon_destino)
             
-            # Si está muy cerca, pasar al siguiente punto
-            if distancia < 0.00005:  # Aproximadamente 5 metros
+            if distancia < 0.00005:  
                 datos['punto_actual_idx'] = datos['proximo_punto_idx']
                 datos['proximo_punto_idx'] += datos['sentido']
                 
                 print(f"   🚏 Bus {bus_id} llegó al punto {datos['punto_actual_idx'] + 1}")
                 
-                # Verificar si llegó al final de la ruta
                 if datos['proximo_punto_idx'] >= len(puntos) or datos['proximo_punto_idx'] < 0:
                     # Cambiar sentido
                     datos['sentido'] *= -1
                     datos['proximo_punto_idx'] = datos['punto_actual_idx'] + datos['sentido']
                     print(f"   🔄 Bus {bus_id} cambiando sentido")
                 
-                # Pausa en el paradero
                 datos['en_paradero'] = True
                 datos['tiempo_paradero'] = 0
                 print(f"   ⏸️  Bus {bus_id} detenido en paradero")
                 
             else:
-                # Mover hacia el siguiente punto
                 factor = datos['velocidad'] / max(distancia, 0.00001)
                 factor = min(factor, 1.0)
                 

@@ -14,7 +14,8 @@ class LugarCercano(LugarCercanoBase,table=True):
 
 
 class LugarCercanoCreate(LugarCercanoBase):
-    pass
+    IdParadero:int
+
 
 class LugarCercanoPublic(LugarCercanoBase):
     IdLugarCercano:int

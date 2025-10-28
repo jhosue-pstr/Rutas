@@ -20,7 +20,8 @@ class Paradero(ParaderoBase,table=True):
 
 
 class ParaderoCreate(ParaderoBase):
-    pass
+    IdBus: int
+
 
 class ParaderoPublic(ParaderoBase):
     IdParadero:int

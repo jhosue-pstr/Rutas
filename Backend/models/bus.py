@@ -50,16 +50,16 @@ class BusBase(SQLModel):
     capacidad: Optional[int] = 40
     modelo: Optional[str] = None
     marca: Optional[str] = None
+    nombre:Optional[str]=None
+    numero:Optional[str]=None
 
 class Bus(BusBase, table=True):
     IdBus: Optional[int] = Field(default=None, primary_key=True)
     ChoferId: Optional[int] = Field(default=None, foreign_key="chofer.IdChofer")
     RutaId: Optional[int] = Field(default=None, foreign_key="ruta.IdRuta")
 
-    # SOLO estas relaciones - ELIMINA completamente paradero
     chofer: Optional["Chofer"] = Relationship(back_populates="buses")
     ruta: Optional["Ruta"] = Relationship(back_populates="buses")
-    # favoritos: Optional["BusFavorito"] = Relationship(back_populates="bus")
     paradero: Optional["Paradero"] = Relationship(back_populates="bus")
     busfavorito:Optional["BusFavorito"]= Relationship(back_populates="bus")
 

@@ -7,7 +7,6 @@ from models.bus_favorito import BusFavorito, BusFavoritoCreate, BusFavoritoPubli
 SessionDep = Annotated[Session, Depends(get_session)]
 
 def CrearBusFavorito(bus_favorito: BusFavoritoCreate, session: Session) -> BusFavoritoPublic:
-    # Verificar si ya existe
     existente = session.exec(
         select(BusFavorito)
         .where(BusFavorito.IdUsuario == bus_favorito.IdUsuario) 

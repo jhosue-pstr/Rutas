@@ -18,10 +18,8 @@ class BusFavorito {
     );
   }
 
-  // Para acceder al id simplemente como "id"
   int get id => idBusFavorito;
 
-  // Métodos para mostrar información (ya que tu modelo no tiene nombre_bus, ruta, etc.)
   String get nombreBus => 'Bus $idBus';
   String get ruta => 'Ruta del bus $idBus';
   String get codigoBus => 'BUS$idBus';

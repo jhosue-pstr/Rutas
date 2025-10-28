@@ -17,9 +17,9 @@ def LeerLugaresFavoritos(session: Session, offset: int = 0, limit: Annotated[int
     lugares = session.exec(select(LugarFavorito).offset(offset).limit(limit)).all()
     return [LugarFavoritoPublic.model_validate(l) for l in lugares]
 
-def LeerLugaresFavoritosPorUsuario(usuario_id: int, session: Session) -> List[LugarFavoritoPublic]:
+def LeerLugaresFavoritosPorUsuario(IdUsuario: int, session: Session) -> List[LugarFavoritoPublic]:
     lugares = session.exec(
-        select(LugarFavorito).where(LugarFavorito.UsuarioId == usuario_id)
+        select(LugarFavorito).where(LugarFavorito.IdUsuario == IdUsuario)
     ).all()
     return [LugarFavoritoPublic.model_validate(l) for l in lugares]
 

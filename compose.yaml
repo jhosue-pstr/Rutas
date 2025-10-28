@@ -22,6 +22,7 @@ services:
       MYSQL_DATABASE: RutasDB
     volumes:
       - mysql_data:/var/lib/mysql
+
   phpmyadmin:
     image: phpmyadmin
     restart: always
@@ -30,12 +31,31 @@ services:
     environment:
       - PMA_ARBITRARY=1
 
-  # frontend:
-  #   image: jhosuepstr/frontend-rs:latest
-  #   container_name: flutter-frontend-RS
-  #   ports:
-  #     - "3000:80"
-  #   restart: always
+  n8n:
+    image: n8nio/n8n
+    container_name: n8n-new
+    environment:
+      - N8N_HOST=http://localhost
+      - DB_TYPE=mysql
+      - DB_MYSQLDB_HOST=db
+      - DB_MYSQLDB_PORT=3306
+      - DB_MYSQLDB_USER=root
+      - DB_MYSQLDB_PASSWORD=123
+      - DB_MYSQLDB_DATABASE=RutasDB
+      - EDITOR_BASE_URL=https://claudie-unpresumptive-gaugeably.ngrok-free.dev
+      - WEBHOOK_URL=https://claudie-unpresumptive-gaugeably.ngrok-free.dev
+    ports:
+      - "7878:5678"
+    depends_on:
+      - db
+    volumes:
+      - ./n8n_data:/root/.n8n
+    restart: always
 
 volumes:
   mysql_data:
+  n8n_data:
+
+networks:
+  default:
+    driver: bridge

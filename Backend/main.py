@@ -47,7 +47,7 @@ async def admin_page():
 
 # 🔥 INCLUIR TODOS LOS ROUTERS (SOLO 3 LÍNEAS NUEVAS)
 app.include_router(admin_estadisticas_router, prefix="/api")
-app.include_router(admin_debug_router, prefix="/api") 
+# app.include_router(admin_debug_router, prefix="/api") 
 
 app.include_router(simulacion_router, prefix="/api", tags=["simulacion"])
 

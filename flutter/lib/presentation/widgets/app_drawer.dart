@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rutasfrontend/presentation/screens/rutas_screen.dart';
+import 'package:rutasfrontend/presentation/screens/ver_rutas_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   final String currentRoute;
@@ -341,7 +342,7 @@ class AppDrawer extends StatelessWidget {
         onTap: () {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const RutasScreen()),
+            MaterialPageRoute(builder: (context) => const VerRutasScreen()),
           );
         },
 

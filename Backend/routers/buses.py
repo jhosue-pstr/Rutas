@@ -22,6 +22,8 @@ def Obtener_Buses(
 def Agregar_Bus(
     bus: BusCreate,
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     return CrearBus(bus, session)
 
@@ -37,6 +39,8 @@ def Actualizar_Bus(
     id: int,
     datos: BusUpdate,
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     return ActualizarBus(id, datos, session)
 
@@ -44,5 +48,7 @@ def Actualizar_Bus(
 def Eliminar_Bus(
     id: int,
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     return EliminarBus(id, session)

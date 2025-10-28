@@ -1,7 +1,5 @@
-// lib/presentation/screens/n8n_chat_screen.dart
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-// Opcional (solo Android): depuración del WebView
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 class N8nChatScreen extends StatefulWidget {

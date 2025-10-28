@@ -22,6 +22,8 @@ def Obtener_Rutas(
 def Agregar_Ruta(
     ruta: RutaCreate,
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     return CrearRuta(ruta, session)
 
@@ -29,6 +31,8 @@ def Agregar_Ruta(
 def Obtener_Ruta_Por_Id(
     id: int,
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     return LeerRutaPorId(id, session)
 
@@ -37,6 +41,8 @@ def Actualizar_Ruta(
     id: int,
     datos: RutaUpdate,
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     return ActualizarRuta(id, datos, session)
 
@@ -44,5 +50,7 @@ def Actualizar_Ruta(
 def Eliminar_Ruta(
     id: int,
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     return EliminarRuta(id, session)

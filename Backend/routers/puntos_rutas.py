@@ -14,7 +14,8 @@ router = APIRouter()
 def Obtener_Puntos_Ruta(
     session: Session = Depends(get_session),
     offset: int = 0,
-    limit: int = 100,
+    limit: int = 10000000000,
+
 ):
     return LeerPuntosRuta(session, offset=offset, limit=limit)
 
@@ -22,6 +23,8 @@ def Obtener_Puntos_Ruta(
 def Agregar_Punto_Ruta(
     punto: PuntoRutaCreate,
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     return CrearPuntoRuta(punto, session)
 
@@ -29,6 +32,8 @@ def Agregar_Punto_Ruta(
 def Obtener_Punto_Ruta_Por_Id(
     id: int,
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     return LeerPuntoRutaPorId(id, session)
 
@@ -37,6 +42,8 @@ def Actualizar_Punto_Ruta(
     id: int,
     datos: PuntoRutaUpdate,
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     return ActualizarPuntoRuta(id, datos, session)
 
@@ -44,5 +51,7 @@ def Actualizar_Punto_Ruta(
 def Eliminar_Punto_Ruta(
     id: int,
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     return EliminarPuntoRuta(id, session)

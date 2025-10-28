@@ -8,9 +8,7 @@ class PuntoRutaService {
 
   Future<List<PuntoRuta>> getPuntosRuta() async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/$endpoint/'), // Agregado /api/
-      );
+      final response = await http.get(Uri.parse('$baseUrl/api/$endpoint/'));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -27,9 +25,7 @@ class PuntoRutaService {
 
   Future<PuntoRuta> getPuntoRutaById(int id) async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/$endpoint/$id'), // Agregado /api/
-      );
+      final response = await http.get(Uri.parse('$baseUrl/api/$endpoint/$id'));
 
       if (response.statusCode == 200) {
         return PuntoRuta.fromJson(json.decode(response.body));
@@ -84,7 +80,7 @@ class PuntoRutaService {
   Future<void> deletePuntoRuta(int id) async {
     try {
       final response = await http.delete(
-        Uri.parse('$baseUrl/api/$endpoint/$id'), // Agregado /api/
+        Uri.parse('$baseUrl/api/$endpoint/$id'),
       );
 
       if (response.statusCode != 204 && response.statusCode != 200) {

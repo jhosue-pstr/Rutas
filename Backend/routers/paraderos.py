@@ -22,6 +22,8 @@ def Obtener_Paraderos(
 def Agregar_Paradero(
     paradero: ParaderoCreate,
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     return CrearParadero(paradero, session)
 
@@ -29,6 +31,7 @@ def Agregar_Paradero(
 def Obtener_Paradero_Por_Id(
     id: int,
     session: Session = Depends(get_session),
+    
 ):
     return LeerParaderoPorId(id, session)
 
@@ -37,6 +40,8 @@ def Actualizar_Paradero(
     id: int,
     datos: ParaderoUpdate,
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     return ActualizarParadero(id, datos, session)
 
@@ -44,5 +49,7 @@ def Actualizar_Paradero(
 def Eliminar_Paradero(
     id: int,
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     return EliminarParadero(id, session)

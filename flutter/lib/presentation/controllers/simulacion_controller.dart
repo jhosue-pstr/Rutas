@@ -1,4 +1,3 @@
-// controllers/simulacion_controller.dart
 import 'dart:async';
 import 'dart:convert';
 import 'package:rutasfrontend/data/models/ubicacion_bus.dart';

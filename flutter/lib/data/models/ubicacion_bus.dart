@@ -1,4 +1,3 @@
-// data/models/ubicacion_bus.dart
 class UbicacionBus {
   final int busId;
   final String placa;
@@ -29,7 +28,6 @@ class UbicacionBus {
     );
   }
 
-  // Para Google Maps
   Map<String, double> toLatLng() {
     return {'latitude': latitud, 'longitude': longitud};
   }

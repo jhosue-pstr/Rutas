@@ -364,7 +364,6 @@ class SegmentoRutaWidget extends StatelessWidget {
   }
 }
 
-// ✅ NUEVO: Painter para línea punteada
 class _LineaPunteadaPainter extends CustomPainter {
   final Color color;
 

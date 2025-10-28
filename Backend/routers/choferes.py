@@ -15,8 +15,8 @@ def Obtener_Choferes(
     session: Session = Depends(get_session),
     offset: int = 0,
     limit: int = 100,
+
 ):
-    """Obtener lista de choferes con paginación"""
     return LeerChoferes(session, offset=offset, limit=limit)
 
 @router.post("/choferes/", response_model=ChoferPublic)
@@ -29,6 +29,8 @@ def Agregar_Chofer(
     qr_pago: UploadFile = File(None, description="QR de pago"),
     licencia_img: UploadFile = File(None, description="Imagen de licencia de conducir"),
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     """Crear un nuevo chofer con información e imágenes opcionales"""
     try:
@@ -64,6 +66,8 @@ def Actualizar_Chofer(
     qr_pago: UploadFile = File(None),
     licencia_img: UploadFile = File(None),
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     """Actualizar información de un chofer existente"""
     try:
@@ -85,6 +89,8 @@ def Actualizar_Chofer(
 def Eliminar_Chofer(
     id: int,
     session: Session = Depends(get_session),
+        current_user: Usuario = Depends(get_current_active_user)
+
 ):
     """Eliminar un chofer por ID"""
     return EliminarChofer(id, session)
@@ -92,7 +98,7 @@ def Eliminar_Chofer(
 @router.get("/choferes/{id}/imagen/{tipo_imagen}")
 def Obtener_Imagen_Chofer(
     id: int,
-    tipo_imagen: str,  # foto, qr_pago, licencia
+    tipo_imagen: str,  
     session: Session = Depends(get_session),
 ):
     """Obtener imagen específica de un chofer"""

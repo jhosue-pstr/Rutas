@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:rutasfrontend/presentation/screens/rutas_screen.dart';
+import 'package:rutasfrontend/presentation/screens/DibujarRutasScreen.dart';
+import 'package:rutasfrontend/presentation/screens/chofer_screen.dart';
+import 'package:rutasfrontend/presentation/screens/noticias_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   final String currentRoute;
@@ -10,7 +13,7 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isGuest = user?['rol'] == 'visitante';
+    final isGuest = false;
     final userName = user?['nombre'] ?? 'Usuario';
     final userEmail = user?['correo'] ?? user?['email'] ?? 'usuario@email.com';
 
@@ -49,7 +52,6 @@ class AppDrawer extends StatelessWidget {
 
                   const SizedBox(height: 15),
 
-                  // 🔥 NOMBRE DEL USUARIO
                   Text(
                     userName,
                     style: const TextStyle(
@@ -61,7 +63,6 @@ class AppDrawer extends StatelessWidget {
 
                   const SizedBox(height: 5),
 
-                  // 🔥 EMAIL DEL USUARIO
                   Text(
                     userEmail,
                     style: const TextStyle(color: Colors.white70, fontSize: 14),
@@ -69,7 +70,6 @@ class AppDrawer extends StatelessWidget {
 
                   const SizedBox(height: 10),
 
-                  // 🔥 BADGE DE ROL
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -92,16 +92,15 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
 
-            // 🔥 LISTA DE OPCIONES
+            // 🔥 LISTA DE OPCIONES CON NAVEGACIÓN CORRECTA
             Expanded(
               child: Container(
-                color: const Color(0xFFF5F5F5), // Fondo gris claro
+                color: const Color(0xFFF5F5F5),
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: [
                     const SizedBox(height: 10),
 
-                    // 🔥 SECCIÓN PRINCIPAL
                     _buildSectionTitle('Navegación Principal'),
 
                     _buildDrawerItem(
@@ -110,7 +109,8 @@ class AppDrawer extends StatelessWidget {
                       title: 'Inicio',
                       route: '/home',
                       isSelected: currentRoute == '/home',
-                      color: const Color(0xFF3F51B5), // Azul Principal
+                      color: const Color(0xFF3F51B5),
+                      screen: const RutasScreen(), // 🔥 PANTALLA CORRECTA
                     ),
 
                     _buildDrawerItem(
@@ -119,17 +119,29 @@ class AppDrawer extends StatelessWidget {
                       title: 'Ver Rutas',
                       route: '/rutas',
                       isSelected: currentRoute == '/rutas',
-                      color: const Color(0xFF8BC34A), // Verde Brillante
+                      color: const Color(0xFF8BC34A),
+                      screen: const RutasScreen(), // 🔥 PANTALLA CORRECTA
                     ),
 
-                    // 🔥 NUEVOS ITEMS DE FAVORITOS (REEMPLAZAN "Dibujar Rutas")
+                    _buildDrawerItem(
+                      context: context,
+                      icon: Icons.edit_road_rounded,
+                      title: 'Dibujar Rutas',
+                      route: '/dibujar-rutas',
+                      isSelected: currentRoute == '/dibujar-rutas',
+                      color: const Color(0xFFFF9800),
+                      screen: const DibujarRutasScreen(), // 🔥 PANTALLA CORRECTA
+                    ),
+
+                    // 🔥 NUEVOS ITEMS DE FAVORITOS
                     _buildDrawerItem(
                       context: context,
                       icon: Icons.favorite_border,
                       title: 'Añadir Lugar Favorito',
                       route: '/favoritos-lugar',
                       isSelected: currentRoute == '/favoritos-lugar',
-                      color: const Color(0xFFE91E63), // Rosa para favoritos
+                      color: const Color(0xFFE91E63),
+                      screen: const RutasScreen(), // 🔥 TEMPORAL
                     ),
 
                     _buildDrawerItem(
@@ -138,32 +150,33 @@ class AppDrawer extends StatelessWidget {
                       title: 'Añadir Bus Favorito',
                       route: '/favoritos-bus',
                       isSelected: currentRoute == '/favoritos-bus',
-                      color: const Color(0xFF9C27B0), // Púrpura para buses
+                      color: const Color(0xFF9C27B0),
+                      screen: const RutasScreen(), // 🔥 TEMPORAL
                     ),
 
-                    // 🔥 SECCIÓN PARA USUARIOS REGISTRADOS
-                    if (!isGuest) ...[
-                      const SizedBox(height: 20),
-                      _buildSectionTitle('Gestión'),
+                    // 🔥 SECCIÓN DE GESTIÓN
+                    const SizedBox(height: 20),
+                    _buildSectionTitle('Gestión'),
 
-                      _buildDrawerItem(
-                        context: context,
-                        icon: Icons.drive_eta_rounded,
-                        title: 'Choferes',
-                        route: '/choferes',
-                        isSelected: currentRoute == '/choferes',
-                        color: const Color(0xFF2196F3), // Azul Cielo
-                      ),
+                    _buildDrawerItem(
+                      context: context,
+                      icon: Icons.drive_eta_rounded,
+                      title: 'Choferes',
+                      route: '/choferes',
+                      isSelected: currentRoute == '/choferes',
+                      color: const Color(0xFF2196F3),
+                      screen: const ChoferScreen(), // 🔥 PANTALLA CORRECTA
+                    ),
 
-                      _buildDrawerItem(
-                        context: context,
-                        icon: Icons.article_outlined,
-                        title: 'Noticias',
-                        route: '/noticias',
-                        isSelected: currentRoute == '/noticias',
-                        color: const Color(0xFF3F51B5), // Azul Principal
-                      ),
-                    ],
+                    _buildDrawerItem(
+                      context: context,
+                      icon: Icons.article_outlined,
+                      title: 'Noticias',
+                      route: '/noticias',
+                      isSelected: currentRoute == '/noticias',
+                      color: const Color(0xFF3F51B5),
+                      screen: const NoticiasScreen(), // 🔥 PANTALLA CORRECTA
+                    ),
 
                     // 🔥 SECCIÓN DE CONFIGURACIÓN
                     const SizedBox(height: 20),
@@ -175,7 +188,8 @@ class AppDrawer extends StatelessWidget {
                       title: 'Mi Perfil',
                       route: '/perfil',
                       isSelected: currentRoute == '/perfil',
-                      color: const Color(0xFF424242), // Gris Oscuro
+                      color: const Color(0xFF424242),
+                      screen: const RutasScreen(), // 🔥 TEMPORAL
                     ),
 
                     _buildDrawerItem(
@@ -184,7 +198,8 @@ class AppDrawer extends StatelessWidget {
                       title: 'Configuración',
                       route: '/configuracion',
                       isSelected: currentRoute == '/configuracion',
-                      color: const Color(0xFF424242), // Gris Oscuro
+                      color: const Color(0xFF424242),
+                      screen: const RutasScreen(), // 🔥 TEMPORAL
                     ),
 
                     _buildDrawerItem(
@@ -193,7 +208,8 @@ class AppDrawer extends StatelessWidget {
                       title: 'Ayuda & Soporte',
                       route: '/ayuda',
                       isSelected: currentRoute == '/ayuda',
-                      color: const Color(0xFF424242), // Gris Oscuro
+                      color: const Color(0xFF424242),
+                      screen: const RutasScreen(), // 🔥 TEMPORAL
                     ),
 
                     // 🔥 NFC SCANNER
@@ -206,7 +222,8 @@ class AppDrawer extends StatelessWidget {
                       title: 'Escanear NFC',
                       route: '/nfc',
                       isSelected: currentRoute == '/nfc',
-                      color: const Color(0xFF8BC34A), // Verde Brillante
+                      color: const Color(0xFF8BC34A),
+                      screen: const RutasScreen(), // 🔥 TEMPORAL
                     ),
 
                     const SizedBox(height: 20),
@@ -221,7 +238,7 @@ class AppDrawer extends StatelessWidget {
                 color: Colors.white,
                 border: Border(
                   top: BorderSide(
-                    color: const Color(0xFFE0E0E0), // Gris Neutro
+                    color: const Color(0xFFE0E0E0),
                     width: 1,
                   ),
                 ),
@@ -229,7 +246,6 @@ class AppDrawer extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // 🔥 BOTÓN DE CERRAR SESIÓN
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -257,13 +273,10 @@ class AppDrawer extends StatelessWidget {
 
                   const SizedBox(height: 10),
 
-                  // 🔥 INFORMACIÓN DE LA APP
                   Text(
                     'Rutas App v1.0',
                     style: TextStyle(
-                      color: const Color(
-                        0xFF424242,
-                      ).withOpacity(0.6), // Gris Oscuro
+                      color: const Color(0xFF424242).withOpacity(0.6),
                       fontSize: 12,
                     ),
                   ),
@@ -283,7 +296,7 @@ class AppDrawer extends StatelessWidget {
       child: Text(
         title,
         style: TextStyle(
-          color: const Color(0xFF424242).withOpacity(0.7), // Gris Oscuro
+          color: const Color(0xFF424242).withOpacity(0.7),
           fontSize: 12,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,
@@ -292,14 +305,15 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  // 🔥 CONSTRUIR ITEM DEL DRAWER - CORREGIDO
+  // 🔥 CONSTRUIR ITEM DEL DRAWER - MEJORADO CON NAVEGACIÓN
   Widget _buildDrawerItem({
-    required BuildContext context, // 🔥 AGREGAR CONTEXT COMO PARÁMETRO
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String route,
     required bool isSelected,
     required Color color,
+    required Widget screen, // 🔥 NUEVO PARÁMETRO: Pantalla destino
   }) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -322,7 +336,7 @@ class AppDrawer extends StatelessWidget {
         title: Text(
           title,
           style: TextStyle(
-            color: const Color(0xFF424242), // Gris Oscuro
+            color: const Color(0xFF424242),
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             fontSize: 14,
           ),
@@ -335,46 +349,22 @@ class AppDrawer extends StatelessWidget {
               )
             : Icon(
                 Icons.chevron_right_rounded,
-                color: const Color(0xFFE0E0E0), // Gris Neutro
+                color: const Color(0xFFE0E0E0),
                 size: 20,
               ),
         onTap: () {
+          Navigator.pop(context); // Cerrar drawer primero
+          
+          // 🔥 NAVEGACIÓN CORRECTA - Usar pushReplacement para reemplazar la pantalla actual
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const RutasScreen()),
+            MaterialPageRoute(builder: (context) => screen),
           );
         },
-
         contentPadding: const EdgeInsets.symmetric(horizontal: 8),
       ),
     );
   }
-
-  // 🔥 MOSTRAR MENSAJE DE DESARROLLO
-  // void _mostrarMensajeDesarrollo(BuildContext context, String feature) {
-  //   Navigator.pop(context); // Cerrar drawer
-
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(
-  //       content: Row(
-  //         children: [
-  //           Icon(Icons.code_rounded, color: Colors.white),
-  //           const SizedBox(width: 10),
-  //           Expanded(
-  //             child: Text(
-  //               '$feature - En desarrollo',
-  //               style: TextStyle(fontWeight: FontWeight.w500),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //       backgroundColor: const Color(0xFF3F51B5), // Azul Principal
-  //       behavior: SnackBarBehavior.floating,
-  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  //       duration: const Duration(seconds: 2),
-  //     ),
-  //   );
-  // }
 
   // 🔥 CONFIRMAR CERRAR SESIÓN
   void _confirmarCerrarSesion(BuildContext context, bool isGuest) {
@@ -391,7 +381,6 @@ class AppDrawer extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 🔥 ICONO DE ALERTA
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -403,11 +392,10 @@ class AppDrawer extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // 🔥 TÍTULO
               Text(
                 isGuest ? '¿Salir de la App?' : 'Cerrar Sesión',
                 style: TextStyle(
-                  color: const Color(0xFF424242), // Gris Oscuro
+                  color: const Color(0xFF424242),
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -415,33 +403,27 @@ class AppDrawer extends StatelessWidget {
 
               const SizedBox(height: 8),
 
-              // 🔥 MENSAJE
               Text(
                 isGuest
                     ? 'Se cerrará la aplicación y volverás a la pantalla de inicio.'
                     : 'Tu sesión se cerrará y deberás iniciar sesión nuevamente.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: const Color(
-                    0xFF424242,
-                  ).withOpacity(0.7), // Gris Oscuro
+                  color: const Color(0xFF424242).withOpacity(0.7),
                   fontSize: 14,
                 ),
               ),
 
               const SizedBox(height: 24),
 
-              // 🔥 BOTONES
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF424242), // Gris Oscuro
-                        side: BorderSide(
-                          color: const Color(0xFFE0E0E0),
-                        ), // Gris Neutro
+                        foregroundColor: const Color(0xFF424242),
+                        side: BorderSide(color: const Color(0xFFE0E0E0)),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -456,8 +438,8 @@ class AppDrawer extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pop(context); // Cerrar dialog
-                        Navigator.pop(context); // Cerrar drawer
+                        Navigator.pop(context);
+                        Navigator.pop(context);
                         _mostrarMensajeCerrarSesion(context, isGuest);
                       },
                       style: ElevatedButton.styleFrom(
@@ -498,7 +480,7 @@ class AppDrawer extends StatelessWidget {
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF8BC34A), // Verde Brillante
+        backgroundColor: const Color(0xFF8BC34A),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 3),

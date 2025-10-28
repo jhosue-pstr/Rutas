@@ -600,6 +600,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:rutasfrontend/presentation/widgets/app_drawer.dart';
 import 'dart:convert';
 import '../../data/models/rutas.dart';
 import '../../data/models/punto_ruta.dart';
@@ -983,6 +984,14 @@ class _DibujarRutasScreenState extends State<DibujarRutasScreen> {
               backgroundColor: Colors.white,
             ),
         ],
+      ),
+      drawer: AppDrawer(
+        currentRoute: '/rutas', // 🔥 RUTA ACTUAL
+        user: {
+          'rol': 'admin', // o 'visitante' según necesites
+          'nombre': 'Usuario',
+          'correo': 'usuario@email.com',
+        },
       ),
       body: Column(
         children: [

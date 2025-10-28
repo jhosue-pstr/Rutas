@@ -1,46 +1,156 @@
+import 'dart:io';
+import 'package:get/get.dart';
 import '../../data/models/chofer.dart';
 import '../../data/services/chofer_service.dart';
 
-class ChoferController {
+class ChoferController extends GetxController {
   final ChoferService _choferService = ChoferService();
+  
+  var choferes = <Chofer>[].obs;
+  var isLoading = false.obs;
+  var selectedChofer = Chofer(
+    idChofer: 0,
+    nombre: '',
+    fechaIngreso: DateTime.now(),
+    estado: true,
+  ).obs;
 
-  Future<List<Chofer>> obtenerChoferes() async {
+  @override
+  void onInit() {
+    fetchChoferes();
+    super.onInit();
+  }
+
+  // 🔹 Obtener lista de choferes
+  Future<void> fetchChoferes() async {
     try {
-      return await _choferService.getChoferes();
+      isLoading(true);
+      final result = await _choferService.getChoferes();
+      choferes.assignAll(result);
     } catch (e) {
-      throw Exception('Error al obtener los choferes: $e');
+      print('Error cargando choferes: $e');
+      // Puedes mostrar un snackbar aquí si lo prefieres
+    } finally {
+      isLoading(false);
     }
   }
 
-  Future<Chofer> obtenerChoferPorId(int id) async {
+  // 🔹 Obtener chofer por ID
+  Future<void> fetchChoferById(int id) async {
     try {
-      return await _choferService.getChoferById(id);
+      isLoading(true);
+      final chofer = await _choferService.getChoferById(id);
+      selectedChofer(chofer);
     } catch (e) {
-      throw Exception('Error al obtener el chofer: $e');
+      print('Error cargando chofer: $e');
+      rethrow;
+    } finally {
+      isLoading(false);
     }
   }
 
-  Future<Chofer> crearChofer(Chofer chofer) async {
+  // 🔹 CREAR CHOFER - NUEVO MÉTODO CORREGIDO
+  Future<void> createChofer({
+    required String nombre,
+    String? apellido,
+    String? dni,
+    String? telefono,
+    File? foto,
+    File? qrPago,
+    File? licenciaImg,
+  }) async {
     try {
-      return await _choferService.createChofer(chofer);
+      isLoading(true);
+      final nuevoChofer = await _choferService.createChofer(
+        nombre: nombre,
+        apellido: apellido,
+        dni: dni,
+        telefono: telefono,
+        foto: foto,
+        qrPago: qrPago,
+        licenciaImg: licenciaImg,
+      );
+      
+      // Agregar el nuevo chofer a la lista
+      choferes.add(nuevoChofer);
+      
     } catch (e) {
-      throw Exception('Error al crear el chofer: $e');
+      print('Error creando chofer: $e');
+      rethrow;
+    } finally {
+      isLoading(false);
     }
   }
 
-  Future<Chofer> actualizarChofer(int id, Map<String, dynamic> datos) async {
+  // 🔹 ACTUALIZAR CHOFER - NUEVO MÉTODO CORREGIDO
+  Future<void> updateChofer({
+    required int id,
+    String? nombre,
+    String? apellido,
+    String? dni,
+    String? telefono,
+    File? foto,
+    File? qrPago,
+    File? licenciaImg,
+  }) async {
     try {
-      return await _choferService.updateChofer(id, datos);
+      isLoading(true);
+      final choferActualizado = await _choferService.updateChofer(
+        id: id,
+        nombre: nombre,
+        apellido: apellido,
+        dni: dni,
+        telefono: telefono,
+        foto: foto,
+        qrPago: qrPago,
+        licenciaImg: licenciaImg,
+      );
+      
+      // Actualizar en la lista
+      final index = choferes.indexWhere((c) => c.idChofer == id);
+      if (index != -1) {
+        choferes[index] = choferActualizado;
+      }
+      
     } catch (e) {
-      throw Exception('Error al actualizar el chofer: $e');
+      print('Error actualizando chofer: $e');
+      rethrow;
+    } finally {
+      isLoading(false);
     }
   }
 
-  Future<void> eliminarChofer(int id) async {
+  // 🔹 ELIMINAR CHOFER
+  Future<void> deleteChofer(int id) async {
     try {
+      isLoading(true);
       await _choferService.deleteChofer(id);
+      choferes.removeWhere((chofer) => chofer.idChofer == id);
     } catch (e) {
-      throw Exception('Error al eliminar el chofer: $e');
+      print('Error eliminando chofer: $e');
+      rethrow;
+    } finally {
+      isLoading(false);
     }
+  }
+
+  // 🔹 Buscar chofer por nombre
+  List<Chofer> searchChoferes(String query) {
+    if (query.isEmpty) return choferes;
+    return choferes.where((chofer) {
+      final nombreCompleto = '${chofer.nombre} ${chofer.apellido ?? ''}'.toLowerCase();
+      return nombreCompleto.contains(query.toLowerCase()) ||
+          (chofer.dni ?? '').contains(query);
+    }).toList();
+  }
+
+  // 🔹 Obtener choferes activos
+  List<Chofer> get choferesActivos {
+    return choferes.where((chofer) => chofer.estado).toList();
+  }
+
+  // 🔹 Obtener choferes inactivos
+  List<Chofer> get choferesInactivos {
+    return choferes.where((chofer) => !chofer.estado).toList();
   }
 }

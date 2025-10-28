@@ -9,6 +9,7 @@ import '../../data/models/ubicacion_bus.dart';
 import '../../presentation/controllers/ruta_controller.dart';
 import '../../presentation/controllers/punto_ruta_controller.dart';
 import '../../presentation/controllers/simulacion_controller.dart';
+import '../widgets/app_drawer.dart';
 
 class RutasScreen extends StatefulWidget {
   const RutasScreen({super.key});
@@ -600,6 +601,14 @@ class _RutasScreenState extends State<RutasScreen> {
             tooltip: 'Actualizar rutas',
           ),
         ],
+      ),
+      drawer: AppDrawer(
+        currentRoute: '/rutas', // 🔥 RUTA ACTUAL
+        user: {
+          'rol': 'admin', // o 'visitante' según necesites
+          'nombre': 'Usuario',
+          'correo': 'usuario@email.com',
+        },
       ),
       body: _cargando
           ? _buildCargando()

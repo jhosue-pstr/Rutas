@@ -16,8 +16,7 @@ def Obtener_Lugares_Favoritos(
     session: Session = Depends(get_session),
     offset: int = 0,
     limit: int = 100,
-        current_user: Usuario = Depends(get_current_active_user)
-
+    current_user: Usuario = Depends(get_current_active_user)
 ):
     return LeerLugaresFavoritos(session, offset=offset, limit=limit)
 
@@ -25,8 +24,7 @@ def Obtener_Lugares_Favoritos(
 def Obtener_Lugares_Favoritos_Por_Usuario(
     usuario_id: int,
     session: Session = Depends(get_session),
-        current_user: Usuario = Depends(get_current_active_user)
-
+    current_user: Usuario = Depends(get_current_active_user)
 ):
     return LeerLugaresFavoritosPorUsuario(usuario_id, session)
 
@@ -34,17 +32,20 @@ def Obtener_Lugares_Favoritos_Por_Usuario(
 def Agregar_Lugar_Favorito(
     lugar: LugarFavoritoCreate,
     session: Session = Depends(get_session),
-        current_user: Usuario = Depends(get_current_active_user)
-
+    current_user: Usuario = Depends(get_current_active_user)
 ):
-    return CrearLugarFavorito(lugar, session)
+    # 🔥 AGREGAR: Pasar el IdUsuario del usuario autenticado
+    lugar_data = lugar.model_dump()
+    lugar_data["IdUsuario"] = current_user.IdUsuario
+    lugar_con_usuario = LugarFavoritoCreate(**lugar_data)
+    
+    return CrearLugarFavorito(lugar_con_usuario, session)
 
 @router.get("/lugares_favoritos/{id}", response_model=LugarFavoritoPublic)
 def Obtener_Lugar_Favorito_Por_Id(
     id: int,
     session: Session = Depends(get_session),
-        current_user: Usuario = Depends(get_current_active_user)
-
+    current_user: Usuario = Depends(get_current_active_user)
 ):
     return LeerLugarFavoritoPorId(id, session)
 
@@ -53,8 +54,7 @@ def Actualizar_Lugar_Favorito(
     id: int,
     datos: LugarFavoritoUpdate,
     session: Session = Depends(get_session),
-        current_user: Usuario = Depends(get_current_active_user)
-
+    current_user: Usuario = Depends(get_current_active_user)
 ):
     return ActualizarLugarFavorito(id, datos, session)
 
@@ -62,7 +62,6 @@ def Actualizar_Lugar_Favorito(
 def Eliminar_Lugar_Favorito(
     id: int,
     session: Session = Depends(get_session),
-        current_user: Usuario = Depends(get_current_active_user)
-
+    current_user: Usuario = Depends(get_current_active_user)
 ):
     return EliminarLugarFavorito(id, session)

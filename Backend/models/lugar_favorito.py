@@ -6,7 +6,8 @@ class LugarFavoritoBase(SQLModel):
     Latitud: float
     Longitud: float
     Descripcion: Optional[str] = None
-    Color: Optional[str] = "#2196F3"  
+    Color: Optional[str] = "#2196F3"
+    IdUsuario: int  
 
 class LugarFavorito(LugarFavoritoBase, table=True):
     Id: Optional[int] = Field(default=None, primary_key=True)
@@ -20,6 +21,7 @@ class LugarFavoritoUpdate(SQLModel):
     Longitud: Optional[float] = None
     Descripcion: Optional[str] = None
     Color: Optional[str] = None
+    IdUsuario: Optional[int] = None
 
 class LugarFavoritoPublic(LugarFavoritoBase):
     Id: int

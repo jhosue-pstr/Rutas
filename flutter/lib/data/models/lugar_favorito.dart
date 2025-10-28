@@ -6,6 +6,7 @@ class LugarFavorito {
   final double longitud;
   final String? descripcion;
   final String color;
+  final int idUsuario; // 🔥 AGREGAR ESTE CAMPO
 
   const LugarFavorito({
     required this.id,
@@ -14,6 +15,7 @@ class LugarFavorito {
     required this.longitud,
     this.descripcion,
     this.color = "#2196F3",
+    required this.idUsuario, // 🔥 AGREGAR ESTE CAMPO
   });
 
   factory LugarFavorito.fromJson(Map<String, dynamic> json) {
@@ -24,6 +26,7 @@ class LugarFavorito {
       longitud: json['Longitud'] ?? 0.0,
       descripcion: json['Descripcion'],
       color: json['Color'] ?? "#2196F3",
+      idUsuario: json['IdUsuario'] ?? 0, // 🔥 AGREGAR ESTE CAMPO
     );
   }
 
@@ -34,6 +37,7 @@ class LugarFavorito {
     'Longitud': longitud,
     'Descripcion': descripcion,
     'Color': color,
+    'IdUsuario': idUsuario, // 🔥 AGREGAR ESTE CAMPO
   };
 }
 
@@ -43,6 +47,7 @@ class LugarFavoritoCreate {
   final double longitud;
   final String? descripcion;
   final String color;
+  final int idUsuario; // 🔥 AGREGAR ESTE CAMPO
 
   const LugarFavoritoCreate({
     required this.nombre,
@@ -50,6 +55,7 @@ class LugarFavoritoCreate {
     required this.longitud,
     this.descripcion,
     this.color = "#2196F3",
+    required this.idUsuario, // 🔥 AGREGAR ESTE CAMPO
   });
 
   Map<String, dynamic> toJson() => {
@@ -58,6 +64,7 @@ class LugarFavoritoCreate {
     'Longitud': longitud,
     'Descripcion': descripcion,
     'Color': color,
+    'IdUsuario': idUsuario, // 🔥 AGREGAR ESTE CAMPO
   };
 }
 
@@ -67,6 +74,7 @@ class LugarFavoritoUpdate {
   final double? longitud;
   final String? descripcion;
   final String? color;
+  final int? idUsuario; // 🔥 AGREGAR ESTE CAMPO
 
   const LugarFavoritoUpdate({
     this.nombre,
@@ -74,6 +82,7 @@ class LugarFavoritoUpdate {
     this.longitud,
     this.descripcion,
     this.color,
+    this.idUsuario, // 🔥 AGREGAR ESTE CAMPO
   });
 
   Map<String, dynamic> toJson() => {
@@ -82,5 +91,6 @@ class LugarFavoritoUpdate {
     if (longitud != null) 'Longitud': longitud,
     if (descripcion != null) 'Descripcion': descripcion,
     if (color != null) 'Color': color,
+    if (idUsuario != null) 'IdUsuario': idUsuario,
   };
 }

@@ -1,8 +1,8 @@
-from sqlmodel import Field, SQLModel, Relationship, Column, String, Integer, Boolean, Date
+from sqlmodel import Field, SQLModel, Relationship
 from typing import Optional, List
 import datetime
 from pydantic import BaseModel
-from sqlalchemy import DateTime
+
 
 class UsuarioBase(SQLModel):
     Nombre: str
@@ -10,14 +10,12 @@ class UsuarioBase(SQLModel):
     Correo: str = Field(unique=True, index=True)  
 
 class Usuario(UsuarioBase, table=True):
-    # 🔥 CORREGIR: Usar los nombres EXACTOS de la BD
-    IdUsuario: Optional[int] = Field(default=None, primary_key=True, sa_column_kwargs={"name": "IdUsuario"})
+    IdUsuario: Optional[int] = Field(default=None, primary_key=True)
     Contrasena: str
     FechaRegistro: datetime.date = Field(default_factory=datetime.datetime.utcnow)
     estado: bool = True
 
-    # Ajustar relaciones si es necesario
-    busfavorito: Optional["BusFavorito"] = Relationship(back_populates="usuario")
+    busfavorito:Optional["BusFavorito"]= Relationship(back_populates="usuario")
 
 class UsuarioCreate(UsuarioBase):
     Contrasena: str

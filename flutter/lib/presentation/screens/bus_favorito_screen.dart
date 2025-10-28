@@ -582,6 +582,7 @@ class _BusFavoritoScreenState extends State<BusFavoritoScreen> {
         backgroundColor: const Color(0xFF9C27B0),
         elevation: 4,
         iconTheme: IconThemeData(color: Colors.white),
+        automaticallyImplyLeading: true, // 🔥 AGREGAR ESTO
         actions: [
           if (_busesFavoritos.isNotEmpty)
             IconButton(

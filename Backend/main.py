@@ -1,11 +1,17 @@
 import sys
 import os
+
+from datetime import datetime, timedelta  
+from fastapi.params import Depends
+from sqlmodel import Session, func, select
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 sys.path.append(os.path.join(os.path.dirname(__file__), 'models'))
 
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from contextlib import asynccontextmanager
-from config.database import create_db_and_tables
+from config.database import create_db_and_tables, get_session
 from routers.usuarios import router as users_router
 from routers.auth import router as auth_router 
 
@@ -20,14 +26,31 @@ from routers.noticias import router as noticias_router
 from routers.buses_favoritos import router as buses_favoritos_router
 from routers.lugares_favoritos import router as lugares_favoritos_router
 
-
 from routers.simulacion import router as simulacion_router
 
+from static.admin_estadisticas import router as admin_estadisticas_router
+from routers.admin_debug import router as admin_debug_router
 
 app = FastAPI()
 
-app.include_router(simulacion_router, prefix="/api", tags=["simulacion"])
+# 🔥 NUEVO: Servir archivos estáticos
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# 🔥 NUEVO: Ruta para la página admin
+@app.get("/admin")
+async def admin_page():
+    return FileResponse("static/admin.html")
+
+# Ruta para la página admin
+@app.get("/admin")
+async def admin_page():
+    return FileResponse("static/admin.html")
+
+# 🔥 INCLUIR TODOS LOS ROUTERS (SOLO 3 LÍNEAS NUEVAS)
+app.include_router(admin_estadisticas_router, prefix="/api")
+app.include_router(admin_debug_router, prefix="/api") 
+
+app.include_router(simulacion_router, prefix="/api", tags=["simulacion"])
 
 app.include_router(auth_router, tags=["authentication"])
 app.include_router(users_router, prefix="/api", tags=["usuarios"])

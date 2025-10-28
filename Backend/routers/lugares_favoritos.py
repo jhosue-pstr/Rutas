@@ -34,7 +34,6 @@ def Agregar_Lugar_Favorito(
     session: Session = Depends(get_session),
     current_user: Usuario = Depends(get_current_active_user)
 ):
-    # 🔥 AGREGAR: Pasar el IdUsuario del usuario autenticado
     lugar_data = lugar.model_dump()
     lugar_data["IdUsuario"] = current_user.IdUsuario
     lugar_con_usuario = LugarFavoritoCreate(**lugar_data)

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administrativo - Sistema de Rutas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>📊 Dashboard Administrativo</h1>
+            <p>Estadísticas en tiempo real del sistema de transporte</p>
+        </header>
+
+        <!-- Estadísticas Generales -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number" id="total-usuarios">0</span>
+                <span class="stat-label">👥 Usuarios Totales</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="total-buses-favoritos">0</span>
+                <span class="stat-label">🚌 Buses Favoritos</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="total-lugares-favoritos">0</span>
+                <span class="stat-label">📍 Lugares Favoritos</span>
+            </div>
+        </section>
+
+        <!-- Buses Más Favoritos -->
+        <section class="report-section">
+            <div class="section-header">
+                <h2 class="section-title">🚌 Buses Más Favoritos</h2>
+                <div class="section-controls">
+                    <button class="refresh-btn" onclick="cargarBusesFavoritos()">
+                        <span>🔄</span> Actualizar
+                    </button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="busesChart"></canvas>
+            </div>
+            <div class="table-container">
+                <div id="buses-list" class="loading">Cargando datos de buses favoritos...</div>
+            </div>
+        </section>
+
+        <!-- Lugares Favoritos -->
+        <section class="report-section">
+            <div class="section-header">
+                <h2 class="section-title">📍 Lugares Favoritos Populares</h2>
+                <div class="section-controls">
+                    <button class="refresh-btn" onclick="cargarLugaresFavoritos()">
+                        <span>🔄</span> Actualizar
+                    </button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="lugaresChart"></canvas>
+            </div>
+            <div class="table-container">
+                <div id="lugares-list" class="loading">Cargando datos de lugares favoritos...</div>
+            </div>
+        </section>
+
+        <!-- Estadísticas de Usuarios -->
+        <section class="report-section">
+            <div class="section-header">
+                <h2 class="section-title">👥 Registro de Usuarios</h2>
+                <div class="section-controls">
+                    <select id="rango-fechas" onchange="cargarUsuariosPorFecha()" class="select-control">
+                        <option value="7">Últimos 7 días</option>
+                        <option value="30">Últimos 30 días</option>
+                        <option value="90">Últimos 90 días</option>
+                        <option value="365">Último año</option>
+                        <option value="0" selected>Todo el historial</option>
+
+                    </select>
+                    <button class="refresh-btn" onclick="cargarUsuariosPorFecha()">
+                        <span>🔄</span> Actualizar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Estadísticas generales de usuarios -->
+            <div class="stats-grid"
+                style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 25px;">
+                <div class="stat-card">
+                    <span class="stat-number" id="total-usuarios-general">0</span>
+                    <span class="stat-label">Total Registrados</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number" id="usuarios-activos">0</span>
+                    <span class="stat-label">Usuarios Activos</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number" id="usuarios-inactivos">0</span>
+                    <span class="stat-label">Usuarios Inactivos</span>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="usuariosChart"></canvas>
+            </div>
+            <div class="table-container">
+                <div id="usuarios-list" class="loading">Cargando datos de usuarios...</div>
+            </div>
+        </section>
+
+        <!-- Sección de Debug (Opcional) -->
+        <section class="report-section" style="display: none;" id="debug-section">
+            <div class="section-header">
+                <h2 class="section-title">🔧 Información de Diagnóstico</h2>
+            </div>
+            <div id="debug-info"></div>
+        </section>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

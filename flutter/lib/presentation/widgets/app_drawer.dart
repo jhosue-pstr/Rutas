@@ -345,35 +345,29 @@ class AppDrawer extends StatelessWidget {
           Navigator.pop(context);
 
           if (route == '/rutas') {
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => RutasScreen()),
             );
           } else if (route == '/ver-rutas') {
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => VerRutasScreen()),
             );
           } else if (route == '/favoritos-lugar') {
-            // 🔥 Navegar a LugarFavoritoScreen con token y user
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => LugarFavoritoScreen(
-                  token: token, // 🔥 Pasar el token
-                  user: user, // 🔥 Pasar el user
-                ),
+                builder: (context) =>
+                    LugarFavoritoScreen(token: token, user: user),
               ),
             );
           } else if (route == '/favoritos-bus') {
-            // 🔥 Navegar a BusFavoritoScreen con token y user
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => BusFavoritoScreen(
-                  token: token, // 🔥 Pasar el token
-                  user: user, // 🔥 Pasar el user
-                ),
+                builder: (context) =>
+                    BusFavoritoScreen(token: token, user: user),
               ),
             );
           } else {

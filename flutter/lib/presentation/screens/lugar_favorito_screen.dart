@@ -27,10 +27,8 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
 
   // Variables para el mapa
   GoogleMapController? _mapController;
-  LatLng _ubicacionActual = const LatLng(
-    -17.3895,
-    -66.1568,
-  ); // Ubicación por defecto (Cochabamba)
+  double _zoomLevel = 12.0;
+  LatLng _ubicacionActual = const LatLng(-17.3895, -66.1568);
   LatLng? _ubicacionSeleccionada;
   Set<Marker> _markers = {};
 
@@ -95,8 +93,6 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
   void _onMapTap(LatLng location) {
     setState(() {
       _ubicacionSeleccionada = location;
-
-      // Limpiar marcadores anteriores y agregar el nuevo
       _markers.clear();
       _markers.add(
         Marker(
@@ -115,6 +111,31 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
     });
   }
 
+  void _zoomIn() {
+    _mapController?.animateCamera(CameraUpdate.zoomIn());
+    setState(() {
+      _zoomLevel += 1.0;
+    });
+  }
+
+  void _zoomOut() {
+    _mapController?.animateCamera(CameraUpdate.zoomOut());
+    setState(() {
+      _zoomLevel -= 1.0;
+    });
+  }
+
+  void _resetZoom() {
+    _mapController?.animateCamera(CameraUpdate.zoomTo(12.0));
+    setState(() {
+      _zoomLevel = 12.0;
+    });
+  }
+
+  void _goToMyLocation() {
+    _mapController?.animateCamera(CameraUpdate.newLatLng(_ubicacionActual));
+  }
+
   Future<void> _agregarLugarFavorito() async {
     if (_nombreController.text.isEmpty) {
       _mostrarError('Por favor ingresa un nombre para el lugar');
@@ -127,6 +148,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
     }
 
     try {
+      final usuarioId = widget.user?['IdUsuario'] ?? 0;
       final nuevoLugar = LugarFavoritoCreate(
         nombre: _nombreController.text,
         latitud: _ubicacionSeleccionada!.latitude,
@@ -134,19 +156,17 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
         descripcion: _descripcionController.text.isEmpty
             ? null
             : _descripcionController.text,
-        color: "#2196F3", // Azul Cielo
+        color: "#2196F3",
+        idUsuario: usuarioId,
       );
 
       await _controller.agregarLugarFavorito(nuevoLugar);
-
-      // Limpiar campos
       _nombreController.clear();
       _descripcionController.clear();
       setState(() {
         _ubicacionSeleccionada = null;
-        _agregarMarcadorInicial(); // Volver al marcador inicial
+        _agregarMarcadorInicial();
       });
-
       _cargarLugaresFavoritos();
       _mostrarExito('Lugar agregado a favoritos');
     } catch (e) {
@@ -168,7 +188,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensaje),
-        backgroundColor: const Color(0xFF8BC34A), // Verde Brillante
+        backgroundColor: const Color(0xFF8BC34A),
       ),
     );
   }
@@ -177,7 +197,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensaje),
-        backgroundColor: const Color(0xFFFF9800), // Naranja Dinámico
+        backgroundColor: const Color(0xFFFF9800),
       ),
     );
   }
@@ -191,7 +211,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
             width: 140,
             height: 140,
             decoration: BoxDecoration(
-              color: const Color(0xFF2196F3).withOpacity(0.1), // Azul Cielo
+              color: const Color(0xFF2196F3).withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: const Color(0xFF2196F3).withOpacity(0.3),
@@ -201,7 +221,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
             child: Icon(
               Icons.location_on_outlined,
               size: 70,
-              color: const Color(0xFF2196F3), // Azul Cielo
+              color: const Color(0xFF2196F3),
             ),
           ),
           const SizedBox(height: 24),
@@ -210,7 +230,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF424242), // Gris Oscuro
+              color: const Color(0xFF424242),
             ),
           ),
           const SizedBox(height: 12),
@@ -219,14 +239,14 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
-              color: const Color(0xFF424242).withOpacity(0.7), // Gris Oscuro
+              color: const Color(0xFF424242).withOpacity(0.7),
             ),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: _mostrarDialogoAgregarLugar,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2196F3), // Azul Cielo
+              backgroundColor: const Color(0xFF2196F3),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               shape: RoundedRectangleBorder(
@@ -262,44 +282,38 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
                 offset: const Offset(0, 2),
               ),
             ],
-            border: Border.all(
-              color: const Color(0xFFE0E0E0), // Gris Neutro
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
           ),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
               onTap: () {
-                // Mover el mapa a la ubicación del lugar
                 _mapController?.animateCamera(
-                  CameraUpdate.newLatLng(LatLng(lugar.latitud, lugar.longitud)),
+                  CameraUpdate.newLatLngZoom(
+                    LatLng(lugar.latitud, lugar.longitud),
+                    14.0,
+                  ),
                 );
               },
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    // ÍCONO DEL LUGAR
                     Container(
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: const Color(
-                          0xFF2196F3,
-                        ).withOpacity(0.1), // Azul Cielo
+                        color: const Color(0xFF2196F3).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
                         Icons.location_on_rounded,
                         size: 32,
-                        color: const Color(0xFF2196F3), // Azul Cielo
+                        color: const Color(0xFF2196F3),
                       ),
                     ),
                     const SizedBox(width: 16),
-
-                    // INFORMACIÓN DEL LUGAR
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -309,7 +323,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF424242), // Gris Oscuro
+                              color: const Color(0xFF424242),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -330,9 +344,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
                               Icon(
                                 Icons.my_location,
                                 size: 14,
-                                color: const Color(
-                                  0xFF3F51B5,
-                                ), // Azul Principal
+                                color: const Color(0xFF3F51B5),
                               ),
                               const SizedBox(width: 6),
                               Text(
@@ -349,21 +361,17 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
                         ],
                       ),
                     ),
-
-                    // BOTÓN ELIMINAR
                     IconButton(
                       onPressed: () => _mostrarDialogoEliminar(lugar.id),
                       icon: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(
-                            0xFFFF9800,
-                          ).withOpacity(0.1), // Naranja Dinámico
+                          color: const Color(0xFFFF9800).withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.delete_outline,
-                          color: const Color(0xFFFF9800), // Naranja Dinámico
+                          color: const Color(0xFFFF9800),
                           size: 20,
                         ),
                       ),
@@ -375,6 +383,161 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildMapa() {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.4, // 40% de la pantalla
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: GoogleMap(
+              onMapCreated: _onMapCreated,
+              initialCameraPosition: CameraPosition(
+                target: _ubicacionActual,
+                zoom: _zoomLevel,
+              ),
+              markers: _markers,
+              onTap: _onMapTap,
+              myLocationEnabled: true,
+              myLocationButtonEnabled: false, // Desactivamos el botón nativo
+              zoomControlsEnabled: false, // Desactivamos controles nativos
+              compassEnabled: true,
+              rotateGesturesEnabled: true,
+              scrollGesturesEnabled: true,
+              zoomGesturesEnabled: true,
+            ),
+          ),
+
+          // CONTROLES DE ZOOM PERSONALIZADOS
+          Positioned(
+            right: 16,
+            top: 16,
+            child: Column(
+              children: [
+                // BOTÓN ZOOM IN
+                _buildBotonControl(
+                  icon: Icons.add,
+                  onTap: _zoomIn,
+                  color: const Color(0xFF2196F3),
+                  tooltip: 'Acercar',
+                ),
+                const SizedBox(height: 8),
+                // BOTÓN ZOOM OUT
+                _buildBotonControl(
+                  icon: Icons.remove,
+                  onTap: _zoomOut,
+                  color: const Color(0xFF2196F3),
+                  tooltip: 'Alejar',
+                ),
+                const SizedBox(height: 8),
+                // BOTÓN RESET ZOOM
+                _buildBotonControl(
+                  icon: Icons.center_focus_strong,
+                  onTap: _resetZoom,
+                  color: const Color(0xFF3F51B5),
+                  tooltip: 'Zoom por defecto',
+                ),
+              ],
+            ),
+          ),
+
+          // BOTÓN MI UBICACIÓN
+          Positioned(
+            right: 16,
+            bottom: 16,
+            child: _buildBotonControl(
+              icon: Icons.my_location,
+              onTap: _goToMyLocation,
+              color: const Color(0xFF8BC34A),
+              tooltip: 'Mi ubicación',
+            ),
+          ),
+
+          // INDICADOR DE ZOOM
+          Positioned(
+            left: 16,
+            top: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.zoom_in_map,
+                    size: 16,
+                    color: const Color(0xFF424242),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Zoom: ${_zoomLevel.toStringAsFixed(1)}x',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF424242),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBotonControl({
+    required IconData icon,
+    required VoidCallback onTap,
+    required Color color,
+    required String tooltip,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+      ),
     );
   }
 
@@ -392,17 +555,16 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ENCABEZADO
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2196F3).withOpacity(0.1), // Azul Cielo
+                  color: const Color(0xFF2196F3).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.add_location_alt_rounded,
                   size: 40,
-                  color: const Color(0xFF2196F3), // Azul Cielo
+                  color: const Color(0xFF2196F3),
                 ),
               ),
               const SizedBox(height: 16),
@@ -411,12 +573,10 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF424242), // Gris Oscuro
+                  color: const Color(0xFF424242),
                 ),
               ),
               const SizedBox(height: 20),
-
-              // FORMULARIO
               TextField(
                 controller: _nombreController,
                 decoration: InputDecoration(
@@ -430,10 +590,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: const Color(0xFF2196F3)),
                   ),
-                  prefixIcon: Icon(
-                    Icons.place,
-                    color: const Color(0xFF2196F3), // Azul Cielo
-                  ),
+                  prefixIcon: Icon(Icons.place, color: const Color(0xFF2196F3)),
                 ),
               ),
               const SizedBox(height: 16),
@@ -453,7 +610,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
                   ),
                   prefixIcon: Icon(
                     Icons.description,
-                    color: const Color(0xFF3F51B5), // Azul Principal
+                    color: const Color(0xFF3F51B5),
                   ),
                 ),
               ),
@@ -461,9 +618,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(
-                    0xFF8BC34A,
-                  ).withOpacity(0.1), // Verde Brillante
+                  color: const Color(0xFF8BC34A).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: const Color(0xFF8BC34A).withOpacity(0.3),
@@ -473,7 +628,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
                   children: [
                     Icon(
                       Icons.info_outline,
-                      color: const Color(0xFF8BC34A), // Verde Brillante
+                      color: const Color(0xFF8BC34A),
                       size: 20,
                     ),
                     const SizedBox(width: 8),
@@ -492,8 +647,6 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // BOTONES
               Row(
                 children: [
                   Expanded(
@@ -518,7 +671,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
                         _agregarLugarFavorito();
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2196F3), // Azul Cielo
+                        backgroundColor: const Color(0xFF2196F3),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -555,15 +708,13 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(
-                    0xFFFF9800,
-                  ).withOpacity(0.1), // Naranja Dinámico
+                  color: const Color(0xFFFF9800).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.warning_amber_rounded,
                   size: 40,
-                  color: const Color(0xFFFF9800), // Naranja Dinámico
+                  color: const Color(0xFFFF9800),
                 ),
               ),
               const SizedBox(height: 16),
@@ -608,9 +759,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
                         _eliminarLugarFavorito(id);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(
-                          0xFFFF9800,
-                        ), // Naranja Dinámico
+                        backgroundColor: const Color(0xFFFF9800),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -629,38 +778,6 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
     );
   }
 
-  Widget _buildMapa() {
-    return Container(
-      height: 300,
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: GoogleMap(
-          onMapCreated: _onMapCreated,
-          initialCameraPosition: CameraPosition(
-            target: _ubicacionActual,
-            zoom: 12,
-          ),
-          markers: _markers,
-          onTap: _onMapTap,
-          myLocationEnabled: true,
-          myLocationButtonEnabled: true,
-          zoomControlsEnabled: false,
-        ),
-      ),
-    );
-  }
-
   Widget _buildBody() {
     if (_cargando) {
       return Center(
@@ -668,9 +785,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(
-                Color(0xFF2196F3),
-              ), // Azul Cielo
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2196F3)),
             ),
             const SizedBox(height: 16),
             Text(
@@ -687,11 +802,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: const Color(0xFFFF9800), // Naranja Dinámico
-            ),
+            Icon(Icons.error_outline, size: 64, color: const Color(0xFFFF9800)),
             const SizedBox(height: 16),
             Text(
               'Error al cargar',
@@ -716,7 +827,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
             ElevatedButton(
               onPressed: _cargarLugaresFavoritos,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3F51B5), // Azul Principal
+                backgroundColor: const Color(0xFF3F51B5),
                 foregroundColor: Colors.white,
               ),
               child: Text('Reintentar'),
@@ -728,10 +839,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
 
     return Column(
       children: [
-        // MAPA
         _buildMapa(),
-
-        // TÍTULO DE LA LISTA
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
@@ -750,8 +858,6 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
           ),
         ),
         const SizedBox(height: 8),
-
-        // LISTA DE LUGARES
         Expanded(
           child: _lugaresFavoritos.isEmpty
               ? _buildVacio()
@@ -764,7 +870,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE0E0E0), // Gris Neutro
+      backgroundColor: const Color(0xFFE0E0E0),
       appBar: AppBar(
         title: Text(
           'Mis Lugares Favoritos',
@@ -774,7 +880,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
             fontSize: 18,
           ),
         ),
-        backgroundColor: const Color(0xFF2196F3), // Azul Cielo
+        backgroundColor: const Color(0xFF2196F3),
         elevation: 4,
         iconTheme: IconThemeData(color: Colors.white),
         actions: [
@@ -790,7 +896,7 @@ class _LugarFavoritoScreenState extends State<LugarFavoritoScreen> {
       floatingActionButton: _lugaresFavoritos.isNotEmpty
           ? FloatingActionButton(
               onPressed: _mostrarDialogoAgregarLugar,
-              backgroundColor: const Color(0xFF2196F3), // Azul Cielo
+              backgroundColor: const Color(0xFF2196F3),
               foregroundColor: Colors.white,
               child: Icon(Icons.add),
             )

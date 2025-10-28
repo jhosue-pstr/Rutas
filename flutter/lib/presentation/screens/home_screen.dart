@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:rutasfrontend/presentation/controllers/bus_controller.dart';
+import 'package:rutasfrontend/presentation/screens/N8nChatScreen.dart';
 import 'package:rutasfrontend/presentation/widgets/detalle_ruta_widget.dart';
 import 'package:rutasfrontend/presentation/widgets/rutas_mapa_widget.dart';
 import 'dart:convert';
@@ -11,7 +12,9 @@ import '../widgets/busqueda_widget.dart';
 import '../widgets/resultados_ruta_widget.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  final String? token;
+  final Map<String, dynamic>? user;
+  const HomeScreen({Key? key, this.token, this.user}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -230,7 +233,8 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF3F51B5),
         foregroundColor: Colors.white,
-        title: const Text('Rutas App'),
+        title: Text('Bienvenido ${widget.user?['Nombre'] ?? 'Usuario'}'),
+
         automaticallyImplyLeading: true,
         actions: [
           IconButton(
@@ -242,15 +246,11 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       drawer: AppDrawer(
         currentRoute: '/home',
-        user: {
-          'nombre': 'Usuario',
-          'correo': 'usuario@email.com',
-          'rol': 'visitante',
-        },
+        user: widget.user,
+        token: widget.token,
       ),
       body: Stack(
         children: [
-          // ✅ MAPA PRINCIPAL
           MapaWidget(
             onMapTap: _onMapTap,
             onUbicacionObtenida: _onUbicacionObtenida,
@@ -259,7 +259,6 @@ class _HomeScreenState extends State<HomeScreen> {
             rutasBuses: _rutasBuses,
           ),
 
-          // ✅ BÚSQUEDA
           Positioned(
             top: MediaQuery.of(context).padding.top + 5,
             left: 10,
@@ -274,7 +273,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // ✅ INDICADOR DE SELECCIÓN EN MAPA
           if (_seleccionOrigen || _seleccionDestino)
             Positioned(
               top: MediaQuery.of(context).padding.top + 140,
@@ -296,13 +294,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-          // ✅ BOTONES FLOTANTES MEJORADOS
           Positioned(
             bottom: 20,
             right: 20,
             child: Column(
               children: [
-                // BOTÓN BUSCAR RUTAS DE BUSES
                 FloatingActionButton(
                   heroTag: "btn_buscar_buses",
                   onPressed: _calcularRutasBuses,
@@ -340,7 +336,38 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // ✅ INDICADOR DE RUTAS ACTIVAS
+          Positioned(
+            bottom: 20,
+            left: 20,
+            child: Column(
+              children: [
+                FloatingActionButton(
+                  heroTag: "btn_chat",
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => N8nChatScreen()),
+                    );
+                  },
+                  backgroundColor: Colors.purple,
+                  foregroundColor: Colors.white,
+                  child: const Icon(Icons.chat),
+                ),
+
+                const SizedBox(height: 10),
+
+                FloatingActionButton(
+                  heroTag: "btn_ayuda",
+                  onPressed: () {},
+                  backgroundColor: Colors.amber,
+                  foregroundColor: Colors.white,
+                  mini: true,
+                  child: const Icon(Icons.help),
+                ),
+              ],
+            ),
+          ),
+
           if (_mostrandoRutasBuses)
             Positioned(
               bottom: 150,

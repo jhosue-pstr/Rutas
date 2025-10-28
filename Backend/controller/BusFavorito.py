@@ -1,3 +1,4 @@
+# controller/BusFavorito.py
 from typing import Annotated, List
 from fastapi import Depends, HTTPException, Query
 from sqlmodel import Session, select
@@ -28,7 +29,7 @@ def LeerBusesFavoritos(session: Session, offset: int = 0, limit: Annotated[int, 
 
 def LeerBusesFavoritosPorUsuario(usuario_id: int, session: Session) -> List[BusFavoritoPublic]:
     favoritos = session.exec(
-        select(BusFavorito).where(BusFavorito.UsuarioId == usuario_id)
+        select(BusFavorito).where(BusFavorito.IdUsuario == usuario_id)
     ).all()
     return [BusFavoritoPublic.model_validate(f) for f in favoritos]
 
@@ -47,10 +48,11 @@ def EliminarBusFavorito(id: int, session: Session):
     return {"message": "Bus eliminado de favoritos"}
 
 def EliminarBusFavoritoPorUsuarioYBuses(usuario_id: int, bus_id: int, session: Session):
+    # CORREGIDO: Usar IdUsuario e IdBus
     favorito = session.exec(
         select(BusFavorito)
-        .where(BusFavorito.UsuarioId == usuario_id)
-        .where(BusFavorito.BusId == bus_id)
+        .where(BusFavorito.IdUsuario == usuario_id)
+        .where(BusFavorito.IdBus == bus_id)
     ).first()
     
     if not favorito:

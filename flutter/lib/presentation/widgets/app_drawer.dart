@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:rutasfrontend/presentation/screens/rutas_screen.dart';
 import 'package:rutasfrontend/presentation/screens/ver_rutas_screen.dart';
+import '../screens/bus_favorito_screen.dart';
+import '../screens/lugar_favorito_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   final String currentRoute;
   final Map<String, dynamic>? user;
+  final String? token;
 
-  const AppDrawer({Key? key, required this.currentRoute, this.user})
+  const AppDrawer({Key? key, required this.currentRoute, this.token, this.user})
     : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final isGuest = user?['rol'] == 'visitante';
-    final userName = user?['nombre'] ?? 'Usuario';
-    final userEmail = user?['correo'] ?? user?['email'] ?? 'usuario@email.com';
+    final userName = user?['Nombre'] ?? 'Usuario';
+    final userEmail = user?['Correo'] ?? user?['email'] ?? 'usuario@email.com';
 
     return Drawer(
       child: Container(
@@ -293,9 +296,8 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  // 🔥 CONSTRUIR ITEM DEL DRAWER - CORREGIDO
   Widget _buildDrawerItem({
-    required BuildContext context, // 🔥 AGREGAR CONTEXT COMO PARÁMETRO
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String route,
@@ -323,7 +325,7 @@ class AppDrawer extends StatelessWidget {
         title: Text(
           title,
           style: TextStyle(
-            color: const Color(0xFF424242), // Gris Oscuro
+            color: const Color(0xFF424242),
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             fontSize: 14,
           ),
@@ -336,46 +338,75 @@ class AppDrawer extends StatelessWidget {
               )
             : Icon(
                 Icons.chevron_right_rounded,
-                color: const Color(0xFFE0E0E0), // Gris Neutro
+                color: const Color(0xFFE0E0E0),
                 size: 20,
               ),
         onTap: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const VerRutasScreen()),
-          );
-        },
+          Navigator.pop(context);
 
+          if (route == '/rutas') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => RutasScreen()),
+            );
+          } else if (route == '/ver-rutas') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => VerRutasScreen()),
+            );
+          } else if (route == '/favoritos-lugar') {
+            // 🔥 Navegar a LugarFavoritoScreen con token y user
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LugarFavoritoScreen(
+                  token: token, // 🔥 Pasar el token
+                  user: user, // 🔥 Pasar el user
+                ),
+              ),
+            );
+          } else if (route == '/favoritos-bus') {
+            // 🔥 Navegar a BusFavoritoScreen con token y user
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => BusFavoritoScreen(
+                  token: token, // 🔥 Pasar el token
+                  user: user, // 🔥 Pasar el user
+                ),
+              ),
+            );
+          } else {
+            _mostrarMensajeDesarrollo(context, title);
+          }
+        },
         contentPadding: const EdgeInsets.symmetric(horizontal: 8),
       ),
     );
   }
 
-  // 🔥 MOSTRAR MENSAJE DE DESARROLLO
-  // void _mostrarMensajeDesarrollo(BuildContext context, String feature) {
-  //   Navigator.pop(context); // Cerrar drawer
-
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(
-  //       content: Row(
-  //         children: [
-  //           Icon(Icons.code_rounded, color: Colors.white),
-  //           const SizedBox(width: 10),
-  //           Expanded(
-  //             child: Text(
-  //               '$feature - En desarrollo',
-  //               style: TextStyle(fontWeight: FontWeight.w500),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //       backgroundColor: const Color(0xFF3F51B5), // Azul Principal
-  //       behavior: SnackBarBehavior.floating,
-  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  //       duration: const Duration(seconds: 2),
-  //     ),
-  //   );
-  // }
+  void _mostrarMensajeDesarrollo(BuildContext context, String feature) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.code_rounded, color: Colors.white),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '$feature - En desarrollo',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF3F51B5),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
   // 🔥 CONFIRMAR CERRAR SESIÓN
   void _confirmarCerrarSesion(BuildContext context, bool isGuest) {

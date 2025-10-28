@@ -18,7 +18,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  // Definición de colores según tu paleta
   final Color _azulPrincipal = const Color(0xFF3F51B5);
   final Color _verdeBrillante = const Color(0xFF8BC34A);
   final Color _naranjaDinamico = const Color(0xFFFF9800);
@@ -67,7 +66,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
+        MaterialPageRoute(
+          builder: (context) =>
+              HomeScreen(token: widget.token, user: widget.user),
+        ),
       );
     }
   }
@@ -75,7 +77,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _skipToEnd() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => DibujarRutasScreen()),
+      MaterialPageRoute(
+        builder: (context) =>
+            HomeScreen(token: widget.token, user: widget.user),
+      ),
     );
   }
 

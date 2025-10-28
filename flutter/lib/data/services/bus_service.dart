@@ -19,7 +19,7 @@ class BusService {
 
   Future<Bus> crearBus(Bus bus) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/api/buses/'), // Agregado /api/
+      Uri.parse('$baseUrl/api/buses/'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode(bus.toJson()),
     );
@@ -32,9 +32,7 @@ class BusService {
   }
 
   Future<Bus> obtenerBusPorId(int id) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/buses/$id'), // Agregado /api/
-    );
+    final response = await http.get(Uri.parse('$baseUrl/api/buses/$id'));
 
     if (response.statusCode == 200) {
       return Bus.fromJson(json.decode(response.body));
@@ -45,7 +43,7 @@ class BusService {
 
   Future<Bus> actualizarBus(int id, Bus bus) async {
     final response = await http.patch(
-      Uri.parse('$baseUrl/api/buses/$id'), // Agregado /api/
+      Uri.parse('$baseUrl/api/buses/$id'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode(bus.toJson()),
     );
@@ -58,9 +56,7 @@ class BusService {
   }
 
   Future<void> eliminarBus(int id) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/api/buses/$id'), // Agregado /api/
-    );
+    final response = await http.delete(Uri.parse('$baseUrl/api/buses/$id'));
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Error al eliminar el bus: ${response.statusCode}');

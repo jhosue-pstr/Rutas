@@ -67,7 +67,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const VerRutasScreen()),
+        MaterialPageRoute(builder: (context) => HomeScreen()),
       );
     }
   }
@@ -75,7 +75,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _skipToEnd() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => N8nChatScreen()),
+      MaterialPageRoute(builder: (context) => HomeScreen()),
     );
   }
 

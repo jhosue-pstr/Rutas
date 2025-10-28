@@ -3,269 +3,352 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../data/models/bus.dart';
 import '../../data/models/rutas.dart';
 import '../../data/models/punto_ruta.dart';
+import '../../data/models/ubicacion_bus.dart';
 import '../../data/services/bus_service.dart';
 import './punto_ruta_controller.dart';
+import './ruta_controller.dart';
 
 class BusController {
   final BusService _busService = BusService();
+  final RutaController _rutaController = RutaController();
   final PuntoRutaController _puntoRutaController = PuntoRutaController();
   List<PuntoRuta> _puntosRuta = [];
 
-  // ========== MÉTODOS CRUD BÁSICOS ==========
+  Future<ResultadoBusqueda> buscarRutasYBuses(
+    LatLng origen,
+    LatLng destino, {
+    double radioMaximoKm = 2.0,
+  }) async {
+    print('📍 Buscando RUTAS Y BUSES desde: $origen hasta: $destino');
 
-  Future<List<Bus>> obtenerBuses() async {
-    try {
-      return await _busService.obtenerBuses();
-    } catch (e) {
-      throw Exception('Error al obtener los buses: $e');
-    }
-  }
-
-  Future<Bus> obtenerBusPorId(int id) async {
-    try {
-      return await _busService.obtenerBusPorId(id);
-    } catch (e) {
-      throw Exception('Error al obtener el bus: $e');
-    }
-  }
-
-  Future<Bus> crearBus(Bus bus) async {
-    try {
-      return await _busService.crearBus(bus);
-    } catch (e) {
-      throw Exception('Error al crear el bus: $e');
-    }
-  }
-
-  Future<Bus> actualizarBus(int id, Bus bus) async {
-    try {
-      return await _busService.actualizarBus(id, bus);
-    } catch (e) {
-      throw Exception('Error al actualizar el bus: $e');
-    }
-  }
-
-  Future<void> eliminarBus(int id) async {
-    try {
-      await _busService.eliminarBus(id);
-    } catch (e) {
-      throw Exception('Error al eliminar el bus: $e');
-    }
-  }
-
-  // ========== MÉTODOS DE CÁLCULO DE RUTAS ==========
-
-  // 🔹 OBTENER BUSES CERCA DE UNA UBICACIÓN
-  Future<List<Bus>> obtenerBusesCercaDe(
-    LatLng ubicacion,
-    List<Bus> todosLosBuses,
-    List<Ruta> todasLasRutas,
-  ) async {
-    // Cargar puntos de ruta si no están cargados
     if (_puntosRuta.isEmpty) {
       await _cargarPuntosRuta();
     }
 
-    final busesCerca = <Bus>[];
+    final resultado = ResultadoBusqueda();
 
-    for (final bus in todosLosBuses) {
-      if (bus.RutaId != null) {
-        final ruta = todasLasRutas.firstWhere(
-          (r) => r.IdRuta == bus.RutaId,
-          orElse: () => Ruta(
-            IdRuta: 0,
-            nombre: '',
-            FechaRegistro: DateTime.now(),
-            puntos: [],
-            buses: null,
+    final todasLasRutas = await _rutaController.obtenerRutas();
+
+    final rutasCercanas = await _encontrarTodasRutasCercanas(
+      origen,
+      todasLasRutas,
+      radioMaximoKm,
+    );
+
+    if (rutasCercanas.isEmpty) {
+      print('❌ No se encontraron rutas cercanas al origen');
+      return resultado;
+    }
+
+    print('🛣️ Rutas cercanas encontradas: ${rutasCercanas.length}');
+
+    for (final rutaInfo in rutasCercanas) {
+      final llegaAlDestino = await _verificarLlegaAlDestino(
+        rutaInfo.ruta,
+        rutaInfo.puntoCercano,
+        destino,
+      );
+
+      if (llegaAlDestino) {
+        final busesEnRuta = await _obtenerBusesEnRuta(rutaInfo.ruta.IdRuta);
+
+        final rutaValida = RutaValida(
+          ruta: rutaInfo.ruta,
+          distanciaAlOrigen: rutaInfo.distancia,
+          puntoEmbarque: rutaInfo.puntoCercano,
+          busesDisponibles: busesEnRuta,
+          tiempoCaminando: _calcularTiempoCaminando(rutaInfo.distancia * 1000),
+          tiempoEstimadoBus: _estimarTiempoHastaDestino(
+            rutaInfo.ruta,
+            rutaInfo.puntoCercano,
+            destino,
           ),
         );
 
-        final puntosRuta = _puntosRuta
-            .where((p) => p.RutaId == ruta.IdRuta)
-            .toList();
+        resultado.rutasValidas.add(rutaValida);
 
-        // Verificar si algún punto de la ruta está cerca
-        for (final punto in puntosRuta) {
-          final distancia = _calcularDistancia(
-            ubicacion.latitude,
-            ubicacion.longitude,
-            punto.latitud,
-            punto.longitud,
-          );
-
-          if (distancia <= 500) {
-            // 500 metros de radio
-            busesCerca.add(bus);
-            break;
-          }
-        }
+        print(
+          '✅ Ruta ${rutaInfo.ruta.nombre} - '
+          '${rutaInfo.distancia.toStringAsFixed(2)} km - '
+          '${busesEnRuta.length} buses - '
+          '${rutaValida.tiempoTotal} min total',
+        );
+      } else {
+        print('🔴 Ruta ${rutaInfo.ruta.nombre} - NO llega al destino');
       }
     }
 
-    return busesCerca;
+    resultado.rutasValidas.sort(
+      (a, b) => a.distanciaAlOrigen.compareTo(b.distanciaAlOrigen),
+    );
+
+    resultado.recomendaciones = _calcularMejoresOpciones(
+      resultado.rutasValidas,
+    );
+
+    print(
+      '📊 Resultado: ${resultado.rutasValidas.length} rutas válidas, '
+      '${resultado.recomendaciones.length} recomendaciones',
+    );
+
+    return resultado;
   }
 
-  // 🔹 CALCULAR RUTAS RECOMENDADAS
-  List<RutaRecomendacion> calcularRutasRecomendadas(
-    List<Bus> busesOrigen,
-    List<Bus> busesDestino,
+  Future<List<RutaCercanaInfo>> _encontrarTodasRutasCercanas(
     LatLng origen,
+    List<Ruta> todasLasRutas, // ✅ RECIBIR RUTAS COMO PARÁMETRO
+    double radioMaximoKm,
+  ) async {
+    final rutasCercanas = <RutaCercanaInfo>[];
+
+    for (final ruta in todasLasRutas) {
+      final puntosRuta = _puntosRuta
+          .where((p) => p.RutaId == ruta.IdRuta)
+          .toList();
+
+      if (puntosRuta.isEmpty) continue;
+
+      final puntoCercano = _encontrarPuntoMasCercano(origen, puntosRuta);
+      final distancia = _calcularDistanciaKm(
+        origen.latitude,
+        origen.longitude,
+        puntoCercano.latitud,
+        puntoCercano.longitud,
+      );
+
+      if (distancia <= radioMaximoKm) {
+        rutasCercanas.add(
+          RutaCercanaInfo(
+            ruta: ruta,
+            puntoCercano: LatLng(puntoCercano.latitud, puntoCercano.longitud),
+            distancia: distancia,
+          ),
+        );
+      }
+    }
+
+    return rutasCercanas;
+  }
+
+  Future<bool> _verificarLlegaAlDestino(
+    Ruta ruta,
+    LatLng puntoEmbarque,
     LatLng destino,
-    List<Ruta> todasLasRutas,
-  ) {
-    final recomendaciones = <RutaRecomendacion>[];
+  ) async {
+    final puntosRuta = _puntosRuta
+        .where((p) => p.RutaId == ruta.IdRuta)
+        .toList();
 
-    // Rutas directas (mismo bus)
-    for (final busOrigen in busesOrigen) {
-      for (final busDestino in busesDestino) {
-        if (busOrigen.IdBus == busDestino.IdBus) {
-          // Mismo bus - ruta directa
-          final ruta = todasLasRutas.firstWhere(
-            (r) => r.IdRuta == busOrigen.RutaId,
-          );
-          final tiempo = _estimarTiempoRuta(origen, destino, ruta);
+    if (puntosRuta.length < 2) return false;
 
-          recomendaciones.add(
-            RutaRecomendacion(
-              buses: [
-                BusInfo(bus: busOrigen, ruta: ruta, tiempoEstimado: tiempo),
-              ],
-              tiempoTotal: tiempo,
-              distanciaCaminando: _calcularDistancia(
-                origen.latitude,
-                origen.longitude,
-                destino.latitude,
-                destino.longitude,
-              ),
-              distanciaDestino: 0.0,
-            ),
-          );
-        }
+    puntosRuta.sort((a, b) => a.orden.compareTo(b.orden));
+
+    final puntoEmbarqueObj = _encontrarPuntoMasCercano(
+      puntoEmbarque,
+      puntosRuta,
+    );
+    final indiceEmbarque = puntosRuta.indexOf(puntoEmbarqueObj);
+
+    for (int i = indiceEmbarque; i < puntosRuta.length; i++) {
+      final punto = puntosRuta[i];
+      final distanciaAlDestino = _calcularDistanciaKm(
+        destino.latitude,
+        destino.longitude,
+        punto.latitud,
+        punto.longitud,
+      );
+
+      if (distanciaAlDestino <= 1.5) {
+        return true;
       }
     }
 
-    // Rutas con combinación (2 buses)
-    for (final busOrigen in busesOrigen) {
-      for (final busDestino in busesDestino) {
-        if (busOrigen.IdBus != busDestino.IdBus) {
-          final ruta1 = todasLasRutas.firstWhere(
-            (r) => r.IdRuta == busOrigen.RutaId,
-          );
-          final ruta2 = todasLasRutas.firstWhere(
-            (r) => r.IdRuta == busDestino.RutaId,
-          );
+    return false;
+  }
 
-          // Punto de combinación estimado (en la práctica sería más complejo)
-          final tiempo1 = _estimarTiempoRuta(origen, destino, ruta1) ~/ 2;
-          final tiempo2 = _estimarTiempoRuta(origen, destino, ruta2) ~/ 2;
-          final tiempoTotal = tiempo1 + tiempo2 + 10; // +10 min por transbordo
+  List<Recomendacion> _calcularMejoresOpciones(List<RutaValida> rutasValidas) {
+    final recomendaciones = <Recomendacion>[];
 
-          recomendaciones.add(
-            RutaRecomendacion(
-              buses: [
-                BusInfo(bus: busOrigen, ruta: ruta1, tiempoEstimado: tiempo1),
-                BusInfo(bus: busDestino, ruta: ruta2, tiempoEstimado: tiempo2),
-              ],
-              tiempoTotal: tiempoTotal,
-              distanciaCaminando: _calcularDistancia(
-                origen.latitude,
-                origen.longitude,
-                destino.latitude,
-                destino.longitude,
-              ),
-              distanciaDestino: 0.0,
-            ),
-          );
-        }
+    for (final ruta in rutasValidas) {
+      if (ruta.busesDisponibles.isNotEmpty) {
+        recomendaciones.add(
+          Recomendacion(
+            ruta: ruta.ruta,
+            puntoEmbarque: ruta.puntoEmbarque,
+            distanciaCaminando: ruta.distanciaAlOrigen,
+            tiempoCaminando: ruta.tiempoCaminando,
+            tiempoTotal: ruta.tiempoTotal,
+            busesDisponibles: ruta.busesDisponibles,
+            tipo: 'Con bus disponible',
+            prioridad: 1, // Máxima prioridad
+          ),
+        );
+      } else {
+        recomendaciones.add(
+          Recomendacion(
+            ruta: ruta.ruta,
+            puntoEmbarque: ruta.puntoEmbarque,
+            distanciaCaminando: ruta.distanciaAlOrigen,
+            tiempoCaminando: ruta.tiempoCaminando,
+            tiempoTotal: ruta.tiempoTotal + 10,
+            busesDisponibles: [],
+            tipo: 'Ruta válida (esperar bus)',
+            prioridad: 2,
+          ),
+        );
       }
     }
 
-    // Ordenar por tiempo total
-    recomendaciones.sort((a, b) => a.tiempoTotal.compareTo(b.tiempoTotal));
-
-    return recomendaciones;
+    recomendaciones.sort((a, b) {
+      if (a.prioridad != b.prioridad) {
+        return a.prioridad.compareTo(b.prioridad);
+      }
+      if (a.distanciaCaminando != b.distanciaCaminando) {
+        return a.distanciaCaminando.compareTo(b.distanciaCaminando);
+      }
+      return a.tiempoTotal.compareTo(b.tiempoTotal);
+    });
   }
 
-  // 🔹 OBTENER BUSES POR RUTA
-  List<Bus> obtenerBusesPorRuta(int rutaId, List<Bus> todosLosBuses) {
-    return todosLosBuses.where((bus) => bus.RutaId == rutaId).toList();
-  }
-
-  // 🔹 OBTENER BUSES SIN RUTA ASIGNADA
-  List<Bus> obtenerBusesSinRuta(List<Bus> todosLosBuses) {
-    return todosLosBuses.where((bus) => bus.RutaId == null).toList();
-  }
-
-  // ========== MÉTODOS PRIVADOS ==========
-
-  Future<void> _cargarPuntosRuta() async {
+  Future<List<Bus>> _obtenerBusesEnRuta(int rutaId) async {
     try {
-      _puntosRuta = await _puntoRutaController.obtenerPuntosRuta();
+      final todosLosBuses = await _busService.obtenerBuses();
+      return todosLosBuses.where((bus) => bus.RutaId == rutaId).toList();
     } catch (e) {
-      print('Error cargando puntos de ruta: $e');
-      _puntosRuta = [];
+      print('⚠️ Error obteniendo buses: $e');
+      return [];
     }
   }
 
-  // 🔹 CALCULAR DISTANCIA ENTRE DOS PUNTOS (Haversine)
-  double _calcularDistancia(
+  PuntoRuta _encontrarPuntoMasCercano(
+    LatLng ubicacion,
+    List<PuntoRuta> puntosRuta,
+  ) {
+    PuntoRuta puntoMasCercano = puntosRuta.first;
+    double distanciaMinima = double.maxFinite;
+
+    for (final punto in puntosRuta) {
+      final distancia = _calcularDistanciaKm(
+        ubicacion.latitude,
+        ubicacion.longitude,
+        punto.latitud,
+        punto.longitud,
+      );
+
+      if (distancia < distanciaMinima) {
+        distanciaMinima = distancia;
+        puntoMasCercano = punto;
+      }
+    }
+    return puntoMasCercano;
+  }
+
+  double _calcularDistanciaKm(
     double lat1,
     double lon1,
     double lat2,
     double lon2,
   ) {
-    const radioTierra = 6371e3; // metros
-    final phi1 = lat1 * pi / 180;
-    final phi2 = lat2 * pi / 180;
-    final deltaPhi = (lat2 - lat1) * pi / 180;
-    final deltaLambda = (lon2 - lon1) * pi / 180;
-
+    const radioTierra = 6371.0;
+    final dLat = _toRadians(lat2 - lat1);
+    final dLon = _toRadians(lon2 - lon1);
     final a =
-        sin(deltaPhi / 2) * sin(deltaPhi / 2) +
-        cos(phi1) * cos(phi2) * sin(deltaLambda / 2) * sin(deltaLambda / 2);
+        sin(dLat / 2) * sin(dLat / 2) +
+        cos(_toRadians(lat1)) *
+            cos(_toRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
     final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-
     return radioTierra * c;
   }
 
-  // 🔹 ESTIMAR TIEMPO DE RUTA (simplificado)
-  int _estimarTiempoRuta(LatLng origen, LatLng destino, Ruta ruta) {
-    final distancia = _calcularDistancia(
-      origen.latitude,
-      origen.longitude,
-      destino.latitude,
-      destino.longitude,
+  double _toRadians(double degrees) => degrees * pi / 180;
+
+  int _calcularTiempoCaminando(double distanciaMetros) {
+    return (distanciaMetros / 80).round();
+  }
+
+  int _estimarTiempoHastaDestino(Ruta ruta, LatLng inicio, LatLng fin) {
+    final distancia = _calcularDistanciaKm(
+      inicio.latitude,
+      inicio.longitude,
+      fin.latitude,
+      fin.longitude,
     );
-    // Estimación: 5 min/km + 5 min fijos por paradas
-    return (distancia / 1000 * 5 + 5).round();
+    return (distancia / 20 * 60 + distancia * 0.5).round();
+  }
+
+  Future<void> _cargarPuntosRuta() async {
+    try {
+      _puntosRuta = await _puntoRutaController.obtenerPuntosRuta();
+      print('📍 Puntos de ruta cargados: ${_puntosRuta.length}');
+    } catch (e) {
+      print('❌ Error cargando puntos de ruta: $e');
+      _puntosRuta = [];
+    }
   }
 }
 
-// ========== MODELOS PARA RECOMENDACIONES ==========
+class ResultadoBusqueda {
+  List<RutaValida> rutasValidas = [];
+  List<Recomendacion> recomendaciones = [];
 
-class RutaRecomendacion {
-  final List<BusInfo> buses;
-  final int tiempoTotal;
-  final double distanciaCaminando;
-  final double distanciaDestino;
+  bool get hayRutas => rutasValidas.isNotEmpty;
+  bool get hayBusesDisponibles =>
+      rutasValidas.any((ruta) => ruta.busesDisponibles.isNotEmpty);
+}
 
-  RutaRecomendacion({
-    required this.buses,
-    required this.tiempoTotal,
-    required this.distanciaCaminando,
-    required this.distanciaDestino,
+class RutaCercanaInfo {
+  final Ruta ruta;
+  final LatLng puntoCercano;
+  final double distancia;
+
+  RutaCercanaInfo({
+    required this.ruta,
+    required this.puntoCercano,
+    required this.distancia,
   });
 }
 
-class BusInfo {
-  final Bus bus;
+class RutaValida {
   final Ruta ruta;
-  final int tiempoEstimado;
+  final double distanciaAlOrigen;
+  final LatLng puntoEmbarque;
+  final List<Bus> busesDisponibles;
+  final int tiempoCaminando;
+  final int tiempoEstimadoBus;
 
-  BusInfo({
-    required this.bus,
+  RutaValida({
     required this.ruta,
-    required this.tiempoEstimado,
+    required this.distanciaAlOrigen,
+    required this.puntoEmbarque,
+    required this.busesDisponibles,
+    required this.tiempoCaminando,
+    required this.tiempoEstimadoBus,
+  });
+
+  int get tiempoTotal => tiempoCaminando + tiempoEstimadoBus;
+  bool get tieneBuses => busesDisponibles.isNotEmpty;
+}
+
+class Recomendacion {
+  final Ruta ruta;
+  final LatLng puntoEmbarque;
+  final double distanciaCaminando;
+  final int tiempoCaminando;
+  final int tiempoTotal;
+  final List<Bus> busesDisponibles;
+  final String tipo;
+  final int prioridad;
+
+  Recomendacion({
+    required this.ruta,
+    required this.puntoEmbarque,
+    required this.distanciaCaminando,
+    required this.tiempoCaminando,
+    required this.tiempoTotal,
+    required this.busesDisponibles,
+    required this.tipo,
+    required this.prioridad,
   });
 }

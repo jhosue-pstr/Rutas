@@ -1,742 +1,14 @@
-// import 'package:flutter/material.dart';
-// import 'package:google_maps_flutter/google_maps_flutter.dart';
-// import 'package:geolocator/geolocator.dart';
-// import 'package:http/http.dart' as http;
-// import 'dart:convert';
-// import '../../data/models/rutas.dart';
-// import '../../data/models/bus.dart';
-// import '../../presentation/controllers/ruta_controller.dart';
-// import '../../presentation/controllers/bus_controller.dart';
-
-// class HomeScreen extends StatefulWidget {
-//   const HomeScreen({super.key});
-
-//   @override
-//   State<HomeScreen> createState() => _HomeScreenState();
-// }
-
-// class _HomeScreenState extends State<HomeScreen> {
-//   final String apiKey = "AIzaSyBu-nZsShTYeztqo_so258P725jgZB-B5M";
-
-//   GoogleMapController? _mapController;
-//   LatLng? _origen;
-//   LatLng? _destino;
-//   bool _cargando = false;
-//   bool _seleccionOrigen = false;
-//   bool _seleccionDestino = false;
-//   Set<Marker> _markers = {};
-//   Set<Polyline> _polylines = {};
-
-//   final TextEditingController _origenCtrl = TextEditingController();
-//   final TextEditingController _destinoCtrl = TextEditingController();
-
-//   List<String> _sugerenciasOrigen = [];
-//   List<String> _sugerenciasDestino = [];
-
-//   // Nuevas variables para el sistema de buses
-//   final RutaController _rutaController = RutaController();
-//   final BusController _busController = BusController();
-//   List<Ruta> _todasLasRutas = [];
-//   List<Bus> _todosLosBuses = [];
-//   List<RutaRecomendacion> _rutasRecomendadas = [];
-//   bool _mostrarResultados = false;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _obtenerUbicacionActual();
-//     _cargarDatosBuses();
-//   }
-
-//   Future<void> _cargarDatosBuses() async {
-//     try {
-//       _todasLasRutas = await _rutaController.obtenerRutas();
-//       _todosLosBuses = await _busController.obtenerBuses();
-//       print(
-//         '✅ Datos cargados: ${_todasLasRutas.length} rutas, ${_todosLosBuses.length} buses',
-//       );
-//     } catch (e) {
-//       print('❌ Error cargando datos de buses: $e');
-//     }
-//   }
-
-//   Future<void> _obtenerUbicacionActual() async {
-//     setState(() => _cargando = true);
-
-//     bool servicioHabilitado = await Geolocator.isLocationServiceEnabled();
-//     if (!servicioHabilitado) {
-//       ScaffoldMessenger.of(
-//         context,
-//       ).showSnackBar(const SnackBar(content: Text('Activa el GPS')));
-//       setState(() => _cargando = false);
-//       return;
-//     }
-
-//     LocationPermission permiso = await Geolocator.checkPermission();
-//     if (permiso == LocationPermission.denied) {
-//       permiso = await Geolocator.requestPermission();
-//       if (permiso == LocationPermission.denied) {
-//         setState(() => _cargando = false);
-//         return;
-//       }
-//     }
-
-//     try {
-//       Position posicion = await Geolocator.getCurrentPosition();
-//       _origen = LatLng(posicion.latitude, posicion.longitude);
-//       _origenCtrl.text = "Mi ubicación actual";
-//       _markers.add(
-//         Marker(
-//           markerId: const MarkerId('origen'),
-//           position: _origen!,
-//           infoWindow: const InfoWindow(title: "Origen"),
-//         ),
-//       );
-
-//       setState(() => _cargando = false);
-//       _mapController?.animateCamera(CameraUpdate.newLatLngZoom(_origen!, 15));
-//     } catch (e) {
-//       setState(() => _cargando = false);
-//       ScaffoldMessenger.of(
-//         context,
-//       ).showSnackBar(SnackBar(content: Text('Error obteniendo ubicación: $e')));
-//     }
-//   }
-
-//   // 🔹 CALCULAR RUTAS DE BUSES - VERSIÓN ROBUSTA
-//   Future<void> _calcularRutasBuses() async {
-//     if (_origen == null || _destino == null) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text('Selecciona origen y destino')),
-//       );
-//       return;
-//     }
-
-//     setState(() {
-//       _cargando = true;
-//       _mostrarResultados = false;
-//       _rutasRecomendadas = [];
-//     });
-
-//     try {
-//       print('📍 Calculando rutas desde: $_origen hasta: $_destino');
-
-//       // 1. Verificar que tenemos datos
-//       if (_todosLosBuses.isEmpty || _todasLasRutas.isEmpty) {
-//         await _cargarDatosBuses();
-//       }
-
-//       // 2. Buscar buses cerca con validaciones
-//       List<Bus> busesCercaOrigen = [];
-//       List<Bus> busesCercaDestino = [];
-
-//       try {
-//         busesCercaOrigen = await _busController.obtenerBusesCercaDe(
-//           _origen!,
-//           _todosLosBuses,
-//           _todasLasRutas,
-//         );
-//         busesCercaDestino = await _busController.obtenerBusesCercaDe(
-//           _destino!,
-//           _todosLosBuses,
-//           _todasLasRutas,
-//         );
-
-//         print('🚌 Buses cerca origen: ${busesCercaOrigen.length}');
-//         print('🎯 Buses cerca destino: ${busesCercaDestino.length}');
-//       } catch (e) {
-//         print('❌ Error buscando buses cerca: $e');
-//         throw Exception('No se pudieron encontrar buses cerca de tu ubicación');
-//       }
-
-//       // 3. Validar que hay buses disponibles
-//       if (busesCercaOrigen.isEmpty || busesCercaDestino.isEmpty) {
-//         throw Exception(
-//           'No hay buses disponibles cerca de tu ubicación o destino',
-//         );
-//       }
-
-//       // 4. Calcular rutas recomendadas
-//       _rutasRecomendadas = _busController.calcularRutasRecomendadas(
-//         busesCercaOrigen,
-//         busesCercaDestino,
-//         _origen!,
-//         _destino!,
-//         _todasLasRutas,
-//       );
-
-//       print('📊 Rutas calculadas: ${_rutasRecomendadas.length}');
-
-//       // 5. Trazar ruta en el mapa
-//       await _trazarRutaEnMapa();
-
-//       setState(() {
-//         _mostrarResultados = true;
-//         _cargando = false;
-//       });
-//     } catch (e) {
-//       setState(() => _cargando = false);
-//       print('❌ Error en _calcularRutasBuses: $e');
-//       ScaffoldMessenger.of(
-//         context,
-//       ).showSnackBar(SnackBar(content: Text('Error: $e')));
-//     }
-//   }
-
-//   // 🔹 TRAZAR RUTA EN EL MAPA
-//   Future<void> _trazarRutaEnMapa() async {
-//     if (_origen == null || _destino == null) return;
-
-//     try {
-//       final url =
-//           "https://maps.googleapis.com/maps/api/directions/json?origin=${_origen!.latitude},${_origen!.longitude}&destination=${_destino!.latitude},${_destino!.longitude}&mode=walking&key=$apiKey";
-
-//       final res = await http.get(Uri.parse(url));
-//       if (res.statusCode == 200) {
-//         final data = jsonDecode(res.body);
-//         if (data['status'] == "OK" && data['routes'].isNotEmpty) {
-//           final steps = data['routes'][0]['overview_polyline']['points'];
-//           _polylines.clear();
-//           _polylines.add(
-//             Polyline(
-//               polylineId: const PolylineId('ruta'),
-//               color: Colors.green,
-//               width: 5,
-//               points: _decodePolyline(steps),
-//             ),
-//           );
-//           setState(() {});
-//           _mapController?.animateCamera(
-//             CameraUpdate.newLatLngBounds(
-//               _boundsFromLatLngList([_origen!, _destino!]),
-//               50,
-//             ),
-//           );
-//         }
-//       }
-//     } catch (e) {
-//       print('❌ Error trazando ruta: $e');
-//     }
-//   }
-
-//   // 🔹 MOSTRAR DETALLES DE RUTA
-//   void _mostrarDetallesRuta(RutaRecomendacion rutaRecomendada) {
-//     showModalBottomSheet(
-//       context: context,
-//       isScrollControlled: true,
-//       builder: (context) => Container(
-//         padding: const EdgeInsets.all(16),
-//         height: MediaQuery.of(context).size.height * 0.7,
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Row(
-//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//               children: [
-//                 const Text(
-//                   'Ruta Recomendada',
-//                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-//                 ),
-//                 IconButton(
-//                   onPressed: () => Navigator.pop(context),
-//                   icon: const Icon(Icons.close),
-//                 ),
-//               ],
-//             ),
-
-//             // Tiempo total
-//             Card(
-//               child: Padding(
-//                 padding: const EdgeInsets.all(16),
-//                 child: Row(
-//                   children: [
-//                     const Icon(Icons.access_time, color: Colors.blue),
-//                     const SizedBox(width: 12),
-//                     Column(
-//                       crossAxisAlignment: CrossAxisAlignment.start,
-//                       children: [
-//                         const Text('Tiempo estimado'),
-//                         Text(
-//                           '${rutaRecomendada.tiempoTotal} min',
-//                           style: const TextStyle(
-//                             fontSize: 20,
-//                             fontWeight: FontWeight.bold,
-//                             color: Colors.blue,
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ),
-
-//             // Buses a tomar
-//             const SizedBox(height: 16),
-//             const Text(
-//               'Buses a tomar:',
-//               style: TextStyle(fontWeight: FontWeight.bold),
-//             ),
-//             ...rutaRecomendada.buses.map(
-//               (busInfo) => ListTile(
-//                 leading: const Icon(Icons.directions_bus, color: Colors.green),
-//                 title: Text('Bus ${busInfo.bus.placa}'),
-//                 subtitle: Text('Ruta: ${busInfo.ruta.nombre}'),
-//                 trailing: Text('${busInfo.tiempoEstimado} min'),
-//               ),
-//             ),
-
-//             // Instrucciones
-//             const SizedBox(height: 16),
-//             const Text(
-//               'Instrucciones:',
-//               style: TextStyle(fontWeight: FontWeight.bold),
-//             ),
-//             Expanded(
-//               child: ListView(
-//                 children: [
-//                   ListTile(
-//                     leading: const Icon(
-//                       Icons.directions_walk,
-//                       color: Colors.orange,
-//                     ),
-//                     title: const Text('Camina hasta la parada'),
-//                     subtitle: Text(
-//                       '${rutaRecomendada.distanciaCaminando.toStringAsFixed(0)} m',
-//                     ),
-//                   ),
-//                   ...rutaRecomendada.buses.asMap().entries.map((entry) {
-//                     final index = entry.key;
-//                     final busInfo = entry.value;
-//                     return ListTile(
-//                       leading: const Icon(
-//                         Icons.directions_bus,
-//                         color: Colors.green,
-//                       ),
-//                       title: Text('Toma el Bus ${busInfo.bus.placa}'),
-//                       subtitle: Text(
-//                         'Ruta: ${busInfo.ruta.nombre} - ${busInfo.tiempoEstimado} min',
-//                       ),
-//                     );
-//                   }),
-//                   ListTile(
-//                     leading: const Icon(
-//                       Icons.directions_walk,
-//                       color: Colors.orange,
-//                     ),
-//                     title: const Text('Camina hasta tu destino'),
-//                     subtitle: Text(
-//                       '${rutaRecomendada.distanciaDestino.toStringAsFixed(0)} m',
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-
-//             // Botón de acción
-//             ElevatedButton(
-//               onPressed: () => Navigator.pop(context),
-//               style: ElevatedButton.styleFrom(
-//                 backgroundColor: Colors.green,
-//                 foregroundColor: Colors.white,
-//                 minimumSize: const Size(double.infinity, 50),
-//               ),
-//               child: const Text('Comenzar Viaje'),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-//   // 🔹 WIDGET DE RESULTADOS
-//   Widget _buildResultados() {
-//     if (!_mostrarResultados) return const SizedBox();
-
-//     if (_rutasRecomendadas.isEmpty) {
-//       return Positioned(
-//         bottom: 80,
-//         left: 10,
-//         right: 10,
-//         child: Container(
-//           padding: const EdgeInsets.all(16),
-//           decoration: BoxDecoration(
-//             color: Colors.white,
-//             borderRadius: BorderRadius.circular(12),
-//             boxShadow: [
-//               BoxShadow(
-//                 color: Colors.black.withOpacity(0.2),
-//                 blurRadius: 8,
-//                 offset: const Offset(0, 2),
-//               ),
-//             ],
-//           ),
-//           child: const Column(
-//             children: [
-//               Icon(Icons.warning, color: Colors.orange, size: 40),
-//               SizedBox(height: 8),
-//               Text(
-//                 'No se encontraron rutas disponibles',
-//                 style: TextStyle(fontWeight: FontWeight.bold),
-//                 textAlign: TextAlign.center,
-//               ),
-//               Text(
-//                 'Intenta con otro origen o destino',
-//                 textAlign: TextAlign.center,
-//                 style: TextStyle(color: Colors.grey),
-//               ),
-//             ],
-//           ),
-//         ),
-//       );
-//     }
-
-//     return Positioned(
-//       bottom: 80,
-//       left: 10,
-//       right: 10,
-//       child: Container(
-//         padding: const EdgeInsets.all(12),
-//         decoration: BoxDecoration(
-//           color: Colors.white,
-//           borderRadius: BorderRadius.circular(12),
-//           boxShadow: [
-//             BoxShadow(
-//               color: Colors.black.withOpacity(0.2),
-//               blurRadius: 8,
-//               offset: const Offset(0, 2),
-//             ),
-//           ],
-//         ),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             const Text(
-//               '🚌 Rutas Recomendadas',
-//               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-//             ),
-//             const SizedBox(height: 8),
-//             ..._rutasRecomendadas
-//                 .take(3)
-//                 .map(
-//                   (ruta) => Card(
-//                     margin: const EdgeInsets.only(bottom: 8),
-//                     child: ListTile(
-//                       leading: const Icon(
-//                         Icons.directions_bus,
-//                         color: Colors.green,
-//                       ),
-//                       title: Text(
-//                         '${ruta.buses.length} bus(es) - ${ruta.tiempoTotal} min',
-//                       ),
-//                       subtitle: Text(
-//                         ruta.buses.map((b) => b.bus.placa).join(' → '),
-//                       ),
-//                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-//                       onTap: () => _mostrarDetallesRuta(ruta),
-//                     ),
-//                   ),
-//                 ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-//   // 🔹 MÉTODOS EXISTENTES (sin cambios)
-//   Future<List<String>> _buscarLugares(String input, LatLng? ubicacion) async {
-//     if (input.isEmpty) return [];
-//     String locationParam = '';
-//     if (ubicacion != null) {
-//       locationParam =
-//           "&location=${ubicacion.latitude},${ubicacion.longitude}&radius=5000";
-//     }
-
-//     try {
-//       final url =
-//           "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${Uri.encodeComponent(input)}&key=$apiKey$locationParam";
-//       final res = await http.get(Uri.parse(url));
-//       if (res.statusCode == 200) {
-//         final data = jsonDecode(res.body);
-//         if (data['status'] == "OK") {
-//           return List<String>.from(
-//             data['predictions'].map((p) => p['description']),
-//           );
-//         }
-//       }
-//     } catch (e) {
-//       print('Error buscando lugares: $e');
-//     }
-//     return [];
-//   }
-
-//   Future<LatLng?> _geocode(String direccion) async {
-//     try {
-//       final url =
-//           "https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(direccion)}&key=$apiKey";
-//       final res = await http.get(Uri.parse(url));
-//       if (res.statusCode == 200) {
-//         final data = jsonDecode(res.body);
-//         if (data['status'] == "OK" && data['results'].isNotEmpty) {
-//           final loc = data['results'][0]['geometry']['location'];
-//           return LatLng(loc['lat'], loc['lng']);
-//         }
-//       }
-//     } catch (e) {
-//       print('Error geocoding: $e');
-//     }
-//     return null;
-//   }
-
-//   List<LatLng> _decodePolyline(String encoded) {
-//     List<LatLng> poly = [];
-//     int index = 0, len = encoded.length;
-//     int lat = 0, lng = 0;
-
-//     while (index < len) {
-//       int b, shift = 0, result = 0;
-//       do {
-//         b = encoded.codeUnitAt(index++) - 63;
-//         result |= (b & 0x1F) << shift;
-//         shift += 5;
-//       } while (b >= 0x20);
-//       int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-//       lat += dlat;
-
-//       shift = 0;
-//       result = 0;
-//       do {
-//         b = encoded.codeUnitAt(index++) - 63;
-//         result |= (b & 0x1F) << shift;
-//         shift += 5;
-//       } while (b >= 0x20);
-//       int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-//       lng += dlng;
-
-//       poly.add(LatLng(lat / 1e5, lng / 1e5));
-//     }
-//     return poly;
-//   }
-
-//   LatLngBounds _boundsFromLatLngList(List<LatLng> list) {
-//     double south = list.first.latitude,
-//         north = list.first.latitude,
-//         west = list.first.longitude,
-//         east = list.first.longitude;
-//     for (var coord in list) {
-//       if (coord.latitude > north) north = coord.latitude;
-//       if (coord.latitude < south) south = coord.latitude;
-//       if (coord.longitude > east) east = coord.longitude;
-//       if (coord.longitude < west) west = coord.longitude;
-//     }
-//     return LatLngBounds(
-//       southwest: LatLng(south, west),
-//       northeast: LatLng(north, east),
-//     );
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: Stack(
-//         children: [
-//           GoogleMap(
-//             initialCameraPosition: const CameraPosition(
-//               target: LatLng(-15.47353, -70.12007),
-//               zoom: 13,
-//             ),
-//             onMapCreated: (controller) => _mapController = controller,
-//             markers: _markers,
-//             polylines: _polylines,
-//             myLocationEnabled: true,
-//             zoomControlsEnabled: false,
-//             onTap: (pos) {
-//               if (_seleccionOrigen) {
-//                 _origen = pos;
-//                 _markers.removeWhere((m) => m.markerId.value == 'origen');
-//                 _markers.add(
-//                   Marker(
-//                     markerId: const MarkerId('origen'),
-//                     position: pos,
-//                     infoWindow: const InfoWindow(title: 'Origen'),
-//                   ),
-//                 );
-//                 _origenCtrl.text = "Seleccionado en mapa";
-//                 _seleccionOrigen = false;
-//               } else if (_seleccionDestino) {
-//                 _destino = pos;
-//                 _markers.removeWhere((m) => m.markerId.value == 'destino');
-//                 _markers.add(
-//                   Marker(
-//                     markerId: const MarkerId('destino'),
-//                     position: pos,
-//                     infoWindow: const InfoWindow(title: 'Destino'),
-//                   ),
-//                 );
-//                 _destinoCtrl.text = "Seleccionado en mapa";
-//                 _seleccionDestino = false;
-//               }
-//               setState(() {});
-//             },
-//           ),
-
-//           // Campos de búsqueda
-//           Positioned(
-//             top: MediaQuery.of(context).padding.top + 10,
-//             left: 10,
-//             right: 10,
-//             child: Column(
-//               children: [
-//                 _campoAutocomplete(_origenCtrl, true),
-//                 const SizedBox(height: 8),
-//                 _campoAutocomplete(_destinoCtrl, false),
-//               ],
-//             ),
-//           ),
-
-//           // Resultados de rutas
-//           _buildResultados(),
-
-//           if (_cargando) const Center(child: CircularProgressIndicator()),
-//         ],
-//       ),
-//       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-//       floatingActionButton: Row(
-//         mainAxisAlignment: MainAxisAlignment.center,
-//         children: [
-//           FloatingActionButton.extended(
-//             heroTag: "btn_calcular_ruta",
-//             onPressed: _calcularRutasBuses,
-//             icon: const Icon(Icons.directions_bus),
-//             label: const Text('Buscar buses'),
-//             backgroundColor: Colors.green,
-//           ),
-//           const SizedBox(width: 15),
-//           FloatingActionButton(
-//             heroTag: "btn_mi_ubicacion",
-//             onPressed: _obtenerUbicacionActual,
-//             backgroundColor: Colors.blue,
-//             child: const Icon(Icons.my_location, color: Colors.white),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   Widget _campoAutocomplete(TextEditingController ctrl, bool esOrigen) {
-//     return Column(
-//       children: [
-//         TextField(
-//           controller: ctrl,
-//           decoration: InputDecoration(
-//             hintText: esOrigen ? 'Punto de partida' : 'Destino',
-//             prefixIcon: IconButton(
-//               icon: Icon(esOrigen ? Icons.location_on : Icons.flag),
-//               onPressed: () {
-//                 setState(() {
-//                   if (esOrigen) {
-//                     _seleccionOrigen = true;
-//                     _seleccionDestino = false;
-//                   } else {
-//                     _seleccionDestino = true;
-//                     _seleccionOrigen = false;
-//                   }
-//                 });
-//                 ScaffoldMessenger.of(context).showSnackBar(
-//                   SnackBar(
-//                     content: Text(
-//                       esOrigen
-//                           ? 'Toca en el mapa para seleccionar el origen'
-//                           : 'Toca en el mapa para seleccionar el destino',
-//                     ),
-//                   ),
-//                 );
-//               },
-//             ),
-//             filled: true,
-//             fillColor: Colors.white.withOpacity(0.95),
-//             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-//           ),
-//           onChanged: (value) async {
-//             final sugerencias = await _buscarLugares(
-//               value,
-//               esOrigen ? _origen : _destino,
-//             );
-//             setState(() {
-//               if (esOrigen) {
-//                 _sugerenciasOrigen = sugerencias;
-//               } else {
-//                 _sugerenciasDestino = sugerencias;
-//               }
-//             });
-//           },
-//         ),
-//         ...((esOrigen ? _sugerenciasOrigen : _sugerenciasDestino)
-//             .map(
-//               (s) => ListTile(
-//                 dense: true,
-//                 title: Text(s),
-//                 onTap: () async {
-//                   ctrl.text = s;
-//                   LatLng? pos = await _geocode(s);
-//                   if (pos != null) {
-//                     if (esOrigen) {
-//                       _origen = pos;
-//                       _markers.removeWhere((m) => m.markerId.value == 'origen');
-//                       _markers.add(
-//                         Marker(
-//                           markerId: const MarkerId('origen'),
-//                           position: pos,
-//                           infoWindow: const InfoWindow(title: 'Origen'),
-//                         ),
-//                       );
-//                     } else {
-//                       _destino = pos;
-//                       _markers.removeWhere(
-//                         (m) => m.markerId.value == 'destino',
-//                       );
-//                       _markers.add(
-//                         Marker(
-//                           markerId: const MarkerId('destino'),
-//                           position: pos,
-//                           infoWindow: const InfoWindow(title: 'Destino'),
-//                         ),
-//                       );
-//                     }
-//                   }
-//                   setState(() {
-//                     if (esOrigen) {
-//                       _sugerenciasOrigen = [];
-//                     } else {
-//                       _sugerenciasDestino = [];
-//                     }
-//                   });
-//                 },
-//               ),
-//             )
-//             .toList()),
-//       ],
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:async';
-import '../../data/models/rutas.dart';
-import '../../data/models/bus.dart';
-import '../../data/models/punto_ruta.dart';
-import '../../data/models/ubicacion_bus.dart';
-import '../../presentation/controllers/ruta_controller.dart';
-import '../../presentation/controllers/bus_controller.dart';
-import '../../presentation/controllers/punto_ruta_controller.dart';
-import '../../presentation/controllers/simulacion_controller.dart';
+import '../widgets/app_drawer.dart';
+import '../widgets/mapa_widget.dart';
+import '../widgets/busqueda_widget.dart';
+import '../widgets/rutas_mapa_widget.dart'; // ✅ IMPORTAR NUEVO WIDGET
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -745,250 +17,148 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final String apiKey = "AIzaSyBu-nZsShTYeztqo_so258P725jgZB-B5M";
 
-  GoogleMapController? _mapController;
+  bool _cargando = false;
   LatLng? _origen;
   LatLng? _destino;
-  bool _cargando = false;
   bool _seleccionOrigen = false;
   bool _seleccionDestino = false;
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
+  Set<Polyline> _rutasBuses = {}; // ✅ NUEVO: Rutas de buses
 
+  // ✅ CONTROLADORES PARA LA BÚSQUEDA
   final TextEditingController _origenCtrl = TextEditingController();
   final TextEditingController _destinoCtrl = TextEditingController();
 
-  List<String> _sugerenciasOrigen = [];
-  List<String> _sugerenciasDestino = [];
-
-  // Nuevas variables para el sistema de buses
-  final RutaController _rutaController = RutaController();
-  final BusController _busController = BusController();
-  final PuntoRutaController _puntoRutaController = PuntoRutaController();
-  final SimulacionController _simulacionController = SimulacionController();
-
-  List<Ruta> _todasLasRutas = [];
-  List<Bus> _todosLosBuses = [];
-  List<PuntoRuta> _todosLosPuntos = [];
-  List<RutaRecomendacion> _rutasRecomendadas = [];
-  bool _mostrarResultados = false;
-
-  // Variables para buses en tiempo real
-  Map<String, UbicacionBus> _ubicacionesBuses = {};
-  StreamSubscription? _ubicacionesSubscription;
-  Ruta? _rutaSeleccionada;
-
-  @override
-  void initState() {
-    super.initState();
-    _obtenerUbicacionActual();
-    _cargarDatosBuses();
-    _iniciarSimulacion();
+  void _onUbicacionObtenida(LatLng ubicacion) {
+    setState(() {
+      _origen = ubicacion;
+      _origenCtrl.text = 'Mi ubicación actual';
+    });
+    _actualizarMarcadores();
   }
 
-  Future<void> _cargarDatosBuses() async {
-    try {
-      _todasLasRutas = await _rutaController.obtenerRutas();
-      _todosLosBuses = await _busController.obtenerBuses();
-      _todosLosPuntos = await _puntoRutaController.obtenerPuntosRuta();
+  void _onMapTap(LatLng position) {
+    if (_seleccionOrigen) {
+      setState(() {
+        _origen = position;
+        _seleccionOrigen = false;
+        _origenCtrl.text = 'Seleccionado en mapa';
+      });
+      _actualizarMarcadores();
+    } else if (_seleccionDestino) {
+      setState(() {
+        _destino = position;
+        _seleccionDestino = false;
+        _destinoCtrl.text = 'Seleccionado en mapa';
+      });
+      _actualizarMarcadores();
+    }
+  }
 
-      if (_todasLasRutas.isNotEmpty) {
-        _rutaSeleccionada = _todasLasRutas.first;
+  // ✅ MANEJAR BÚSQUEDA DESDE WIDGET
+  void _onDireccionEncontrada(LatLng? ubicacion, bool esOrigen) {
+    setState(() {
+      if (esOrigen) {
+        _origen = ubicacion;
+      } else {
+        _destino = ubicacion;
       }
-
-      print(
-        '✅ Datos cargados: ${_todasLasRutas.length} rutas, ${_todosLosBuses.length} buses, ${_todosLosPuntos.length} puntos',
-      );
-    } catch (e) {
-      print('❌ Error cargando datos de buses: $e');
-    }
+    });
+    _actualizarMarcadores();
   }
 
-  Future<void> _iniciarSimulacion() async {
-    try {
-      await _simulacionController.conectarWebSocket();
-
-      _ubicacionesSubscription = _simulacionController.ubicacionesStream.listen(
-        (ubicaciones) {
-          setState(() {
-            _ubicacionesBuses = ubicaciones;
-            _actualizarMarcadoresBuses();
-          });
-        },
-      );
-    } catch (e) {
-      print('Error iniciando simulación: $e');
-    }
+  // ✅ MANEJAR RUTAS DE BUSES CARGADAS
+  void _onRutasBusesCargadas(Set<Polyline> rutas) {
+    setState(() {
+      _rutasBuses = rutas;
+    });
+    print('✅ ${_rutasBuses.length} rutas de buses cargadas en el mapa');
   }
 
-  void _actualizarMarcadoresBuses() {
-    // Limpiar marcadores de buses existentes
-    _markers.removeWhere((marker) => marker.markerId.value.startsWith('bus_'));
+  void _actualizarMarcadores() {
+    _markers.clear();
 
-    // Agregar marcadores de buses en tiempo real
-    _ubicacionesBuses.forEach((busId, ubicacion) {
+    if (_origen != null) {
       _markers.add(
         Marker(
-          markerId: MarkerId('bus_$busId'),
-          position: LatLng(ubicacion.latitud, ubicacion.longitud),
-          infoWindow: InfoWindow(
-            title: 'Bus ${ubicacion.placa}',
-            snippet: 'Ruta ${ubicacion.rutaId} - En movimiento',
-          ),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueOrange,
-          ),
+          markerId: MarkerId('origen'),
+          position: _origen!,
+          infoWindow: InfoWindow(title: 'Origen'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
         ),
       );
-    });
+    }
 
+    if (_destino != null) {
+      _markers.add(
+        Marker(
+          markerId: MarkerId('destino'),
+          position: _destino!,
+          infoWindow: InfoWindow(title: 'Destino'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        ),
+      );
+    }
     setState(() {});
   }
 
-  Future<void> _obtenerUbicacionActual() async {
-    setState(() => _cargando = true);
-
-    bool servicioHabilitado = await Geolocator.isLocationServiceEnabled();
-    if (!servicioHabilitado) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Activa el GPS')));
-      setState(() => _cargando = false);
-      return;
-    }
-
-    LocationPermission permiso = await Geolocator.checkPermission();
-    if (permiso == LocationPermission.denied) {
-      permiso = await Geolocator.requestPermission();
-      if (permiso == LocationPermission.denied) {
-        setState(() => _cargando = false);
-        return;
-      }
-    }
-
-    try {
-      Position posicion = await Geolocator.getCurrentPosition();
-      _origen = LatLng(posicion.latitude, posicion.longitude);
-      _origenCtrl.text = "Mi ubicación actual";
-      _markers.add(
-        Marker(
-          markerId: const MarkerId('origen'),
-          position: _origen!,
-          infoWindow: const InfoWindow(title: "Origen"),
-        ),
-      );
-
-      setState(() => _cargando = false);
-      _mapController?.animateCamera(CameraUpdate.newLatLngZoom(_origen!, 15));
-    } catch (e) {
-      setState(() => _cargando = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error obteniendo ubicación: $e')));
-    }
-  }
-
-  // 🔹 CALCULAR RUTAS DE BUSES
-  Future<void> _calcularRutasBuses() async {
-    if (_origen == null || _destino == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecciona origen y destino')),
-      );
-      return;
-    }
-
+  void _activarSeleccionOrigen() {
     setState(() {
-      _cargando = true;
-      _mostrarResultados = false;
-      _rutasRecomendadas = [];
+      _seleccionOrigen = true;
+      _seleccionDestino = false;
     });
+  }
 
-    try {
-      print('📍 Calculando rutas desde: $_origen hasta: $_destino');
+  void _activarSeleccionDestino() {
+    setState(() {
+      _seleccionDestino = true;
+      _seleccionOrigen = false;
+    });
+  }
 
-      // 1. Verificar que tenemos datos
-      if (_todosLosBuses.isEmpty || _todasLasRutas.isEmpty) {
-        await _cargarDatosBuses();
-      }
+  void _onLoadingChange(bool cargando) {
+    setState(() {
+      _cargando = cargando;
+    });
+  }
 
-      // 2. Buscar buses cerca
-      List<Bus> busesCercaOrigen = await _busController.obtenerBusesCercaDe(
-        _origen!,
-        _todosLosBuses,
-        _todasLasRutas,
-      );
-
-      List<Bus> busesCercaDestino = await _busController.obtenerBusesCercaDe(
-        _destino!,
-        _todosLosBuses,
-        _todasLasRutas,
-      );
-
-      print('🚌 Buses cerca origen: ${busesCercaOrigen.length}');
-      print('🎯 Buses cerca destino: ${busesCercaDestino.length}');
-
-      // 3. Validar que hay buses disponibles
-      if (busesCercaOrigen.isEmpty || busesCercaDestino.isEmpty) {
-        throw Exception(
-          'No hay buses disponibles cerca de tu ubicación o destino',
-        );
-      }
-
-      // 4. Calcular rutas recomendadas
-      _rutasRecomendadas = _busController.calcularRutasRecomendadas(
-        busesCercaOrigen,
-        busesCercaDestino,
-        _origen!,
-        _destino!,
-        _todasLasRutas,
-      );
-
-      print('📊 Rutas calculadas: ${_rutasRecomendadas.length}');
-
-      // 5. Trazar ruta en el mapa
-      await _trazarRutaEnMapa();
-
-      setState(() {
-        _mostrarResultados = true;
-        _cargando = false;
-      });
-    } catch (e) {
-      setState(() => _cargando = false);
-      print('❌ Error en _calcularRutasBuses: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+  void _calcularRutas() {
+    if (_origen != null && _destino != null) {
+      _trazarRutaEnMapa();
     }
   }
 
-  // 🔹 TRAZAR RUTA EN EL MAPA
+  // ✅ RUTA REAL POR CALLES - MODO DRIVING
   Future<void> _trazarRutaEnMapa() async {
     if (_origen == null || _destino == null) return;
 
+    setState(() => _cargando = true);
+
     try {
       final url =
-          "https://maps.googleapis.com/maps/api/directions/json?origin=${_origen!.latitude},${_origen!.longitude}&destination=${_destino!.latitude},${_destino!.longitude}&mode=walking&key=$apiKey";
+          "https://maps.googleapis.com/maps/api/directions/json?"
+          "origin=${_origen!.latitude},${_origen!.longitude}"
+          "&destination=${_destino!.latitude},${_destino!.longitude}"
+          "&mode=driving" // ✅ CAMBIADO A DRIVING
+          "&key=$apiKey";
 
       final res = await http.get(Uri.parse(url));
+
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         if (data['status'] == "OK" && data['routes'].isNotEmpty) {
-          final steps = data['routes'][0]['overview_polyline']['points'];
-          _polylines.removeWhere(
-            (polyline) => polyline.polylineId.value == 'ruta',
-          );
+          final points = data['routes'][0]['overview_polyline']['points'];
+          final List<LatLng> ruta = _decodePolyline(points);
+
+          _polylines.clear();
           _polylines.add(
             Polyline(
-              polylineId: const PolylineId('ruta'),
-              color: Colors.green,
-              width: 5,
-              points: _decodePolyline(steps),
-            ),
-          );
-          setState(() {});
-          _mapController?.animateCamera(
-            CameraUpdate.newLatLngBounds(
-              _boundsFromLatLngList([_origen!, _destino!]),
-              50,
+              polylineId: PolylineId('ruta'),
+              color: Color(0xFF3F51B5),
+              width: 4,
+              patterns: [PatternItem.dash(10), PatternItem.gap(10)],
+              points: ruta,
             ),
           );
         }
@@ -996,291 +166,11 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       print('❌ Error trazando ruta: $e');
     }
+
+    setState(() => _cargando = false);
   }
 
-  // 🔹 MOSTRAR DETALLES DE RUTA
-  void _mostrarDetallesRuta(RutaRecomendacion rutaRecomendada) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        height: MediaQuery.of(context).size.height * 0.7,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Ruta Recomendada',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-
-            // Tiempo total
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    const Icon(Icons.access_time, color: Colors.blue),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Tiempo estimado'),
-                        Text(
-                          '${rutaRecomendada.tiempoTotal} min',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Buses a tomar
-            const SizedBox(height: 16),
-            const Text(
-              'Buses a tomar:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            ...rutaRecomendada.buses.map(
-              (busInfo) => ListTile(
-                leading: const Icon(Icons.directions_bus, color: Colors.green),
-                title: Text('Bus ${busInfo.bus.placa}'),
-                subtitle: Text('Ruta: ${busInfo.ruta.nombre}'),
-                trailing: Text('${busInfo.tiempoEstimado} min'),
-              ),
-            ),
-
-            // Instrucciones
-            const SizedBox(height: 16),
-            const Text(
-              'Instrucciones:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Expanded(
-              child: ListView(
-                children: [
-                  ListTile(
-                    leading: const Icon(
-                      Icons.directions_walk,
-                      color: Colors.orange,
-                    ),
-                    title: const Text('Camina hasta la parada'),
-                    subtitle: Text(
-                      '${rutaRecomendada.distanciaCaminando.toStringAsFixed(0)} m',
-                    ),
-                  ),
-                  ...rutaRecomendada.buses.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final busInfo = entry.value;
-                    return ListTile(
-                      leading: const Icon(
-                        Icons.directions_bus,
-                        color: Colors.green,
-                      ),
-                      title: Text('Toma el Bus ${busInfo.bus.placa}'),
-                      subtitle: Text(
-                        'Ruta: ${busInfo.ruta.nombre} - ${busInfo.tiempoEstimado} min',
-                      ),
-                    );
-                  }),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.directions_walk,
-                      color: Colors.orange,
-                    ),
-                    title: const Text('Camina hasta tu destino'),
-                    subtitle: Text(
-                      '${rutaRecomendada.distanciaDestino.toStringAsFixed(0)} m',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Botón de acción
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              child: const Text('Comenzar Viaje'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // 🔹 WIDGET DE RESULTADOS
-  Widget _buildResultados() {
-    if (!_mostrarResultados) return const SizedBox();
-
-    if (_rutasRecomendadas.isEmpty) {
-      return Positioned(
-        bottom: 80,
-        left: 10,
-        right: 10,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: const Column(
-            children: [
-              Icon(Icons.warning, color: Colors.orange, size: 40),
-              SizedBox(height: 8),
-              Text(
-                'No se encontraron rutas disponibles',
-                style: TextStyle(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                'Intenta con otro origen o destino',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Positioned(
-      bottom: 80,
-      left: 10,
-      right: 10,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Text(
-                  '🚌 Rutas Recomendadas',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const Spacer(),
-                Icon(
-                  _simulacionController.estaConectado
-                      ? Icons.wifi
-                      : Icons.wifi_off,
-                  color: _simulacionController.estaConectado
-                      ? Colors.green
-                      : Colors.red,
-                  size: 20,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            ..._rutasRecomendadas
-                .take(3)
-                .map(
-                  (ruta) => Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      leading: const Icon(
-                        Icons.directions_bus,
-                        color: Colors.green,
-                      ),
-                      title: Text(
-                        '${ruta.buses.length} bus(es) - ${ruta.tiempoTotal} min',
-                      ),
-                      subtitle: Text(
-                        ruta.buses.map((b) => b.bus.placa).join(' → '),
-                      ),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                      onTap: () => _mostrarDetallesRuta(ruta),
-                    ),
-                  ),
-                ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // 🔹 MÉTODOS AUXILIARES
-  Future<List<String>> _buscarLugares(String input, LatLng? ubicacion) async {
-    if (input.isEmpty) return [];
-    String locationParam = '';
-    if (ubicacion != null) {
-      locationParam =
-          "&location=${ubicacion.latitude},${ubicacion.longitude}&radius=5000";
-    }
-
-    try {
-      final url =
-          "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${Uri.encodeComponent(input)}&key=$apiKey$locationParam";
-      final res = await http.get(Uri.parse(url));
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        if (data['status'] == "OK") {
-          return List<String>.from(
-            data['predictions'].map((p) => p['description']),
-          );
-        }
-      }
-    } catch (e) {
-      print('Error buscando lugares: $e');
-    }
-    return [];
-  }
-
-  Future<LatLng?> _geocode(String direccion) async {
-    try {
-      final url =
-          "https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(direccion)}&key=$apiKey";
-      final res = await http.get(Uri.parse(url));
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        if (data['status'] == "OK" && data['results'].isNotEmpty) {
-          final loc = data['results'][0]['geometry']['location'];
-          return LatLng(loc['lat'], loc['lng']);
-        }
-      }
-    } catch (e) {
-      print('Error geocoding: $e');
-    }
-    return null;
-  }
-
+  // ✅ DECODIFICAR POLYLINE DE GOOGLE
   List<LatLng> _decodePolyline(String encoded) {
     List<LatLng> poly = [];
     int index = 0, len = encoded.length;
@@ -1311,211 +201,112 @@ class _HomeScreenState extends State<HomeScreen> {
     return poly;
   }
 
-  LatLngBounds _boundsFromLatLngList(List<LatLng> list) {
-    double south = list.first.latitude,
-        north = list.first.latitude,
-        west = list.first.longitude,
-        east = list.first.longitude;
-    for (var coord in list) {
-      if (coord.latitude > north) north = coord.latitude;
-      if (coord.latitude < south) south = coord.latitude;
-      if (coord.longitude > east) east = coord.longitude;
-      if (coord.longitude < west) west = coord.longitude;
-    }
-    return LatLngBounds(
-      southwest: LatLng(south, west),
-      northeast: LatLng(north, east),
-    );
-  }
-
-  @override
-  void dispose() {
-    _ubicacionesSubscription?.cancel();
-    _simulacionController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color(0xFF3F51B5),
+        foregroundColor: Colors.white,
+        title: const Text('Rutas App'),
+        automaticallyImplyLeading: true,
+      ),
+      drawer: AppDrawer(
+        currentRoute: '/home',
+        user: {
+          'nombre': 'Usuario',
+          'correo': 'usuario@email.com',
+          'rol': 'visitante',
+        },
+      ),
       body: Stack(
         children: [
-          GoogleMap(
-            initialCameraPosition: const CameraPosition(
-              target: LatLng(-15.47353, -70.12007),
-              zoom: 13,
-            ),
-            onMapCreated: (controller) => _mapController = controller,
-            markers: _markers,
-            polylines: _polylines,
-            myLocationEnabled: true,
-            zoomControlsEnabled: false,
-            onTap: (pos) {
-              if (_seleccionOrigen) {
-                _origen = pos;
-                _markers.removeWhere((m) => m.markerId.value == 'origen');
-                _markers.add(
-                  Marker(
-                    markerId: const MarkerId('origen'),
-                    position: pos,
-                    infoWindow: const InfoWindow(title: 'Origen'),
-                  ),
-                );
-                _origenCtrl.text = "Seleccionado en mapa";
-                _seleccionOrigen = false;
-              } else if (_seleccionDestino) {
-                _destino = pos;
-                _markers.removeWhere((m) => m.markerId.value == 'destino');
-                _markers.add(
-                  Marker(
-                    markerId: const MarkerId('destino'),
-                    position: pos,
-                    infoWindow: const InfoWindow(title: 'Destino'),
-                  ),
-                );
-                _destinoCtrl.text = "Seleccionado en mapa";
-                _seleccionDestino = false;
-              }
-              setState(() {});
-            },
+          // ✅ MAPA CON RUTAS DE BUSES
+          MapaWidget(
+            onMapTap: _onMapTap,
+            onUbicacionObtenida: _onUbicacionObtenida,
+            markersExternos: _markers,
+            polylinesExternos: _polylines,
+            rutasBuses: _rutasBuses, // ✅ PASAR RUTAS DE BUSES
           ),
 
-          // Campos de búsqueda
+          // ✅ WIDGET PARA CARGAR RUTAS DE BUSES (invisible)
+          RutasMapaWidget(
+            onRutasCargadas: _onRutasBusesCargadas, // ✅ CALLBACK
+          ),
+
+          // ✅ BÚSQUEDA CON CONTROLADORES
           Positioned(
-            top: MediaQuery.of(context).padding.top + 10,
+            top: MediaQuery.of(context).padding.top + 5,
             left: 10,
             right: 10,
+            child: BusquedaWidget(
+              origenCtrl: _origenCtrl,
+              destinoCtrl: _destinoCtrl,
+              onSeleccionarOrigen: _activarSeleccionOrigen,
+              onSeleccionarDestino: _activarSeleccionDestino,
+              onLoadingChange: _onLoadingChange,
+              onDireccionEncontrada: _onDireccionEncontrada,
+            ),
+          ),
+
+          // ✅ INDICADOR DE SELECCIÓN EN MAPA
+          if (_seleccionOrigen || _seleccionDestino)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 140,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: EdgeInsets.all(12),
+                color: Colors.orange.withOpacity(0.9),
+                child: Text(
+                  _seleccionOrigen
+                      ? '📍 Toca en el mapa para seleccionar ORIGEN'
+                      : '🎯 Toca en el mapa para seleccionar DESTINO',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+
+          // ✅ BOTONES FLOTANTES
+          Positioned(
+            bottom: 20,
+            right: 20,
             child: Column(
               children: [
-                _campoAutocomplete(_origenCtrl, true),
-                const SizedBox(height: 8),
-                _campoAutocomplete(_destinoCtrl, false),
+                FloatingActionButton(
+                  heroTag: "btn_buscar_buses",
+                  onPressed: _calcularRutas,
+                  backgroundColor: _origen != null && _destino != null
+                      ? Color(0xFF8BC34A)
+                      : Colors.grey,
+                  foregroundColor: Colors.white,
+                  child: const Icon(Icons.directions_bus),
+                ),
+                const SizedBox(height: 10),
+                FloatingActionButton(
+                  heroTag: "btn_mi_ubicacion",
+                  onPressed: () {},
+                  backgroundColor: Color(0xFF2196F3),
+                  foregroundColor: Colors.white,
+                  child: const Icon(Icons.my_location),
+                ),
               ],
             ),
           ),
 
-          // Resultados de rutas
-          _buildResultados(),
-
-          if (_cargando) const Center(child: CircularProgressIndicator()),
-        ],
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          FloatingActionButton.extended(
-            heroTag: "btn_calcular_ruta",
-            onPressed: _calcularRutasBuses,
-            icon: const Icon(Icons.directions_bus),
-            label: const Text('Buscar buses'),
-            backgroundColor: Colors.green,
-          ),
-          const SizedBox(width: 15),
-          FloatingActionButton(
-            heroTag: "btn_mi_ubicacion",
-            onPressed: _obtenerUbicacionActual,
-            backgroundColor: Colors.blue,
-            child: const Icon(Icons.my_location, color: Colors.white),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _campoAutocomplete(TextEditingController ctrl, bool esOrigen) {
-    return Column(
-      children: [
-        TextField(
-          controller: ctrl,
-          decoration: InputDecoration(
-            hintText: esOrigen ? 'Punto de partida' : 'Destino',
-            prefixIcon: IconButton(
-              icon: Icon(esOrigen ? Icons.location_on : Icons.flag),
-              onPressed: () {
-                setState(() {
-                  if (esOrigen) {
-                    _seleccionOrigen = true;
-                    _seleccionDestino = false;
-                  } else {
-                    _seleccionDestino = true;
-                    _seleccionOrigen = false;
-                  }
-                });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      esOrigen
-                          ? 'Toca en el mapa para seleccionar el origen'
-                          : 'Toca en el mapa para seleccionar el destino',
-                    ),
-                  ),
-                );
-              },
-            ),
-            filled: true,
-            fillColor: Colors.white.withOpacity(0.95),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-          onChanged: (value) async {
-            final sugerencias = await _buscarLugares(
-              value,
-              esOrigen ? _origen : _destino,
-            );
-            setState(() {
-              if (esOrigen) {
-                _sugerenciasOrigen = sugerencias;
-              } else {
-                _sugerenciasDestino = sugerencias;
-              }
-            });
-          },
-        ),
-        ...((esOrigen ? _sugerenciasOrigen : _sugerenciasDestino)
-            .map(
-              (s) => ListTile(
-                dense: true,
-                title: Text(s),
-                onTap: () async {
-                  ctrl.text = s;
-                  LatLng? pos = await _geocode(s);
-                  if (pos != null) {
-                    if (esOrigen) {
-                      _origen = pos;
-                      _markers.removeWhere((m) => m.markerId.value == 'origen');
-                      _markers.add(
-                        Marker(
-                          markerId: const MarkerId('origen'),
-                          position: pos,
-                          infoWindow: const InfoWindow(title: 'Origen'),
-                        ),
-                      );
-                    } else {
-                      _destino = pos;
-                      _markers.removeWhere(
-                        (m) => m.markerId.value == 'destino',
-                      );
-                      _markers.add(
-                        Marker(
-                          markerId: const MarkerId('destino'),
-                          position: pos,
-                          infoWindow: const InfoWindow(title: 'Destino'),
-                        ),
-                      );
-                    }
-                  }
-                  setState(() {
-                    if (esOrigen) {
-                      _sugerenciasOrigen = [];
-                    } else {
-                      _sugerenciasDestino = [];
-                    }
-                  });
-                },
+          // ✅ LOADING
+          if (_cargando)
+            Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3F51B5)),
               ),
-            )
-            .toList()),
-      ],
+            ),
+        ],
+      ),
     );
   }
 }

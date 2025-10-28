@@ -28,8 +28,7 @@ from routers.lugares_favoritos import router as lugares_favoritos_router
 
 from routers.simulacion import router as simulacion_router
 
-from static.admin_estadisticas import router as admin_estadisticas_router
-from routers.admin_debug import router as admin_debug_router
+from static.admin_estaticas import router as admin_estadisticas_router
 
 app = FastAPI()
 
@@ -72,4 +71,4 @@ def on_startup():
 
 @app.get("/")
 def read_root():
-    return {"message": "API funcionando"} 
+    return {"message": "API funcionando"}

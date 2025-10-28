@@ -7,6 +7,8 @@ from controller.Chofer import (
     LeerChoferes, CrearChofer, LeerChoferPorId, 
     ActualizarChofer, EliminarChofer
 )
+from routers.auth import get_current_active_user
+from models.usuario import Usuario
 
 router = APIRouter()
 
